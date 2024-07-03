@@ -1,35 +1,39 @@
 package com.example.whatson
 
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import com.example.whatson.components.TitleBodyComponent
+import com.example.whatson.api.ApiService
+import com.example.whatson.api.RetrofitClient
+import com.example.whatson.api.Summary
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var textView: TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+        textView = findViewById(R.id.textView)
 
-        val component1 = findViewById<TitleBodyComponent>(R.id.component1)
-        val component2 = findViewById<TitleBodyComponent>(R.id.component2)
-        val component3 = findViewById<TitleBodyComponent>(R.id.component3)
+        val apiService = RetrofitClient.instance.create(ApiService::class.java)
+        apiService.getSummaries().enqueue(object : Callback<List<Summary>> {
+            override fun onResponse(call: Call<List<Summary>>, response: Response<List<Summary>>) {
+                if (response.isSuccessful) {
+                    val summaries = response.body()
+                    summaries?.forEach { summary ->
+                        textView.append("URL: ${summary.url}\n")
+                        textView.append("Summary: ${summary.summary}\n\n")
+                    }
+                }
+            }
 
-        component1.setTitle("Title 1")
-        component1.setBody("This is the body text for the first component.")
-
-        component2.setTitle("Title 2")
-        component2.setBody("This is the body text for the second component.")
-
-        component3.setTitle("Title 3")
-        component3.setBody("This is the body text for the third component.")
+            override fun onFailure(call: Call<List<Summary>>, t: Throwable) {
+                textView.text = "Error: ${t.message}"
+            }
+        })
     }
 }
