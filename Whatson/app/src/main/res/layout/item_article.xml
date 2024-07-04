@@ -3,7 +3,12 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="?android:attr/selectableItemBackground">
+    android:layout_margin="8dp"
+    android:background="@drawable/item_background"
+    android:elevation="4dp"
+    android:clipToPadding="false"
+    android:clipChildren="false"
+    >
 
     <TextView
         android:id="@+id/article_title"
