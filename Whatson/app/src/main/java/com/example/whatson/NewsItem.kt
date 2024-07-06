@@ -13,13 +13,25 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.whatson.util.NewsItem
+import com.example.whatson.util.loadFavorites
+import com.example.whatson.util.saveFavorites
 
-data class NewsItem(val title: String, val description: String)
 
 @Composable
 fun NewsCard(newsItem: NewsItem) {
     var isFavorite by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    // Load favorites only once when the composable is first launched
+    val favorites = remember { mutableStateOf(loadFavorites(context)) }
+
+    // Update the isFavorite state based on the loaded favorites
+    LaunchedEffect(favorites.value) {
+        isFavorite = favorites.value.any { it.title == newsItem.title && it.description == newsItem.description }
+    }
 
     Card(
         modifier = Modifier
@@ -46,12 +58,15 @@ fun NewsCard(newsItem: NewsItem) {
                 modifier = Modifier
                     .align(Alignment.End)
                     .clickable {
-                        isFavorite = !isFavorite
+                        val updatedFavorites = favorites.value.toMutableList()
                         if (isFavorite) {
-                            // 캐시에 저장하는 로직을 추가하세요.
+                            updatedFavorites.removeAll { it.title == newsItem.title && it.description == newsItem.description }
                         } else {
-                            // 캐시에서 제거하는 로직을 추가하세요.
+                            updatedFavorites.add(newsItem)
                         }
+                        favorites.value = updatedFavorites
+                        saveFavorites(context, updatedFavorites)
+                        isFavorite = !isFavorite
                     },
                 tint = if (isFavorite) Color.Red else Color.Gray
             )
