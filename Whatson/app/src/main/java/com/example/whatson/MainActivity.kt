@@ -3,6 +3,7 @@ package com.example.whatson
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
@@ -38,7 +39,7 @@ class MainActivity : ComponentActivity() {
 }
 suspend fun fetchArticlesFromUrl(): List<ArticleItem> {
     // JSON 파일 URL
-    val urlString = "https://firebasestorage.googleapis.com/v0/b/whatson-93370.appspot.com/o/article%2Farticle.json?alt=media&token=d77a4ebc-1fe5-4e1f-97e3-37010529c721"
+    val urlString = "https://firebasestorage.googleapis.com/v0/b/whatson-93370.appspot.com/o/article%2Farticle.json?alt=media&token=70e0c119-e396-4a3d-998f-a1db85e77c21"
 
     return withContext(Dispatchers.IO) {
         val url = URL(urlString) // URL 객체 생성
@@ -58,10 +59,13 @@ suspend fun fetchArticlesFromUrl(): List<ArticleItem> {
                 for (article in articles) {
                     val title = article["Title"] as? String ?: "" // 제목 추출
                     val description = article["Content"] as? String ?: "" // 내용 추출
-                    val imageUrl = (article["imageurl"] as? JsonArray)?.map { it.asString } ?: listOf() // 이미지 URL 리스트 추출
+                    val imageUrl = (article["imageurl"] as? List<String>) ?: listOf() // 이미지 URL 리스트 추출
                     articleItems.add(ArticleItem(title, description, imageUrl)) // ArticleItem 객체 생성 및 리스트에 추가
                 }
             }
+            // JSON 파싱 결과를 로그에 출력
+            Log.d("ArticleData", articleItems.toString())
+
             articleItems // 결과 반환
         } else {
             emptyList() // 응답이 실패한 경우 빈 리스트 반환
