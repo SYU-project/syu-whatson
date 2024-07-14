@@ -48,7 +48,7 @@ android {
 
 dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
-    implementation("io.coil-kt:coil-compose:2.1.0")
+    implementation("io.coil-kt:coil-compose:2.6.0")
 
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
@@ -77,6 +77,7 @@ dependencies {
     implementation("androidx.room:room-runtime:2.4.2")
     implementation("androidx.navigation:navigation-runtime-ktx:2.7.7")
     implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation(libs.firebase.storage.ktx)
     kapt("androidx.room:room-compiler:2.4.2")
     implementation("androidx.room:room-ktx:2.4.2")
 

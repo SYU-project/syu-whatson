@@ -15,9 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
 import com.example.whatson.ui.theme.WhatsOnTheme
-import com.example.whatson.*
 import com.example.whatson.util.loadArticleFavorites
-import com.example.whatson.util.loadFavorites
 import com.example.whatson.util.loadNewsFavorites
 
 class LikeScreenActivity : ComponentActivity() {

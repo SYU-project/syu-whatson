@@ -4,6 +4,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Card
@@ -16,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import com.example.whatson.util.ArticleItem
 import com.example.whatson.util.NewsItem
@@ -107,14 +110,20 @@ fun ArticleCard(articleItem: ArticleItem) {
                 text = articleItem.title,
                 style = MaterialTheme.typography.headlineMedium
             )
-            articleItem.imageUrl.let { imageUrl ->
-                Image(
-                    painter = rememberImagePainter(imageUrl),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                )
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+            ) {
+                items(articleItem.imageUrl) { imageUrl ->
+                    Image(
+                        painter = rememberAsyncImagePainter(imageUrl),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .padding(end = 8.dp)
+                    )
+                }
             }
             Text(
                 text = articleItem.description,
