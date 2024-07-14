@@ -14,13 +14,47 @@
         android:background="@android:drawable/btn_dropdown"
         android:spinnerMode="dropdown" />
 
-    <!-- 뉴스 리스트를 보여줄 RecyclerView -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_view_news"
+    <!-- ScrollView를 사용하여 스크롤 가능하게 만듭니다 -->
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_below="@id/spinner_filter"
-        android:padding="16dp"
-        android:clipToPadding="false"
-        android:scrollbars="vertical" />
+        android:layout_marginTop="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- 각 박스를 추가합니다 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:padding="16dp"
+                android:layout_marginBottom="8dp"
+                android:background="#FFDDDDDD"
+                android:text="뉴스 1"
+                android:textSize="18sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:padding="16dp"
+                android:layout_marginBottom="8dp"
+                android:background="#FFDDDDDD"
+                android:text="뉴스 2"
+                android:textSize="18sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:padding="16dp"
+                android:layout_marginBottom="8dp"
+                android:background="#FFDDDDDD"
+                android:text="뉴스 3"
+                android:textSize="18sp" />
+
+        </LinearLayout>
+    </ScrollView>
 </RelativeLayout>
