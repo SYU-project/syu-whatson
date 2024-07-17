@@ -10,6 +10,7 @@ import java.io.FileWriter
 import java.io.BufferedReader
 import java.io.InputStreamReader// NewsItem class definition
 data class NewsItem(
+    val category: String,
     val title: String,
     val description: String
 )
@@ -64,23 +65,8 @@ fun loadArticleFavorites(context: Context): List<ArticleItem> {
 }
 
 fun loadNewsFromAssets(context: Context): List<NewsItem> {
-    val newsList = mutableListOf<NewsItem>()
-    try {
-        val inputStream = context.assets.open("news.txt")
-        val reader = BufferedReader(InputStreamReader(inputStream))
-        var line = reader.readLine()
-        while (line != null) {
-            val parts = line.split("|")
-            if (parts.size == 2) {
-                val title = parts[0]
-                val description = parts[1]
-                newsList.add(NewsItem(title, description))
-            }
-            line = reader.readLine()
-        }
-        reader.close()
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
-    return newsList
+    val jsonString = context.assets.open("news.json").bufferedReader().use { it.readText() }
+    val gson = Gson()
+    val listType = object : TypeToken<List<NewsItem>>() {}.type
+    return gson.fromJson(jsonString, listType)
 }

@@ -73,21 +73,12 @@ suspend fun fetchArticlesFromUrl(): List<ArticleItem> {
 fun MainScreen() {
     val navController = rememberNavController()
     val context = LocalContext.current
-    var newsList by remember { mutableStateOf(listOf<NewsItem>()) }
     var articleList by remember { mutableStateOf(listOf<ArticleItem>()) }
-    var mixedList by remember { mutableStateOf(listOf<Any>()) }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
 
     LaunchedEffect(Unit) {
-        val loadedNews = loadNewsFromAssets(context)
-        newsList = loadedNews
-
         val articles = fetchArticlesFromUrl()
         articleList = articles
-
-        val combinedList = (newsList + articleList).toMutableList()
-        combinedList.shuffle()
-        mixedList = combinedList
     }
 
     Scaffold(
@@ -109,25 +100,17 @@ fun MainScreen() {
                 TabRowExample()
                 Spacer(modifier = Modifier.height(8.dp))
 
-                val filteredList = mixedList.filter { item ->
-                    when (item) {
-                        is NewsItem -> item.title.contains(searchQuery.text, ignoreCase = true) ||
-                                item.description.contains(searchQuery.text, ignoreCase = true)
-                        is ArticleItem -> item.title.contains(searchQuery.text, ignoreCase = true) ||
-                                item.description.contains(searchQuery.text, ignoreCase = true)
-                        else -> false
-                    }
+                val filteredList = articleList.filter { article ->
+                    article.title.contains(searchQuery.text, ignoreCase = true) ||
+                            article.description.contains(searchQuery.text, ignoreCase = true)
                 }
 
-                LazyColumn (
+                LazyColumn(
                     state = scrollState,
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items(filteredList) { item ->
-                        when (item) {
-                            is NewsItem -> NewsCard(item)
-                            is ArticleItem -> ArticleCard(item)
-                        }
+                    items(filteredList) { article ->
+                        ArticleCard(article)
                     }
                 }
             }
