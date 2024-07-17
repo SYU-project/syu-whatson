@@ -100,9 +100,10 @@ fun MainScreen() {
                 TabRowExample()
                 Spacer(modifier = Modifier.height(8.dp))
 
+                val trimmedQuery = searchQuery.text.trim()
                 val filteredList = articleList.filter { article ->
-                    article.title.contains(searchQuery.text, ignoreCase = true) ||
-                            article.description.contains(searchQuery.text, ignoreCase = true)
+                    article.title.contains(trimmedQuery, ignoreCase = true) ||
+                            article.description.contains(trimmedQuery, ignoreCase = true)
                 }
 
                 LazyColumn(
