@@ -17,9 +17,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.whatson.ui.theme.WhatsOnTheme
 import com.example.whatson.util.ArticleItem
 import com.example.whatson.util.NewsItem
-import com.example.whatson.util.loadNewsFromAssets
 import com.google.gson.Gson
-import com.google.gson.JsonArray
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -72,6 +70,34 @@ suspend fun fetchArticlesFromUrl(): List<ArticleItem> {
     }
 }
 
+suspend fun fetchNewsFromUrl(): List<NewsItem> {
+    val urlString = "http://210.109.52.162:5000/summaries"
+
+    return withContext(Dispatchers.IO) {
+        val url = URL(urlString)
+        val connection = url.openConnection() as HttpURLConnection
+        connection.requestMethod = "GET"
+
+        if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+            val jsonString = connection.inputStream.bufferedReader().use { it.readText() }
+            val gson = Gson()
+            val listType = object : TypeToken<List<Map<String, String>>>() {}.type
+            val articlesList: List<Map<String, String>> = gson.fromJson(jsonString, listType)
+
+            val newsItems = articlesList.map { article ->
+                val title = article["title"] ?: ""
+                val description = article["description"] ?: ""
+                NewsItem(title, description)
+            }
+
+            Log.d("NewsData", newsItems.toString())
+
+            newsItems
+        } else {
+            emptyList()
+        }
+    }
+}
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
@@ -82,7 +108,7 @@ fun MainScreen() {
 
     LaunchedEffect(Unit) {
         // assets에서 뉴스 데이터 불러오기
-        val loadedNews = loadNewsFromAssets(context)
+        val loadedNews = fetchNewsFromUrl()
         newsList = loadedNews
 
         // Firebase에서 기사 데이터 가져오기

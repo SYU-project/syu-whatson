@@ -62,25 +62,3 @@ fun loadArticleFavorites(context: Context): List<ArticleItem> {
         return gson.fromJson(it, itemType)
     }
 }
-
-fun loadNewsFromAssets(context: Context): List<NewsItem> {
-    val newsList = mutableListOf<NewsItem>()
-    try {
-        val inputStream = context.assets.open("news.txt")
-        val reader = BufferedReader(InputStreamReader(inputStream))
-        var line = reader.readLine()
-        while (line != null) {
-            val parts = line.split("|")
-            if (parts.size == 2) {
-                val title = parts[0]
-                val description = parts[1]
-                newsList.add(NewsItem(title, description))
-            }
-            line = reader.readLine()
-        }
-        reader.close()
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
-    return newsList
-}
