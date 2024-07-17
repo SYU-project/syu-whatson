@@ -7,8 +7,7 @@ import com.google.gson.reflect.TypeToken
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
-import java.io.BufferedReader
-import java.io.InputStreamReader// NewsItem class definition
+
 data class NewsItem(
     val category: String,
     val title: String,
