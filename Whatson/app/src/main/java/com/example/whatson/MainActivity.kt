@@ -130,7 +130,7 @@ fun MainScreen() {
         // 리스트 합치고 섞기
         val combinedList = (articleList).toMutableList()
         combinedList.shuffle()
-        mixedList = articleList
+        mixedList = combinedList
     }
 
     Scaffold(
