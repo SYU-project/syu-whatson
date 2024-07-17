@@ -70,31 +70,37 @@ suspend fun fetchArticlesFromUrl(): List<ArticleItem> {
     }
 }
 
+// URL에서 뉴스를 가져오는 함수
 suspend fun fetchNewsFromUrl(): List<NewsItem> {
+    // JSON 파일 URL
     val urlString = "http://210.109.52.162:5000/summaries"
 
     return withContext(Dispatchers.IO) {
-        val url = URL(urlString)
-        val connection = url.openConnection() as HttpURLConnection
-        connection.requestMethod = "GET"
+        val url = URL(urlString) // URL 객체 생성
+        val connection = url.openConnection() as HttpURLConnection // HTTP 연결 열기
+        connection.requestMethod = "GET" // GET 요청 설정
 
         if (connection.responseCode == HttpURLConnection.HTTP_OK) {
-            val jsonString = connection.inputStream.bufferedReader().use { it.readText() }
-            val gson = Gson()
-            val listType = object : TypeToken<List<Map<String, String>>>() {}.type
-            val articlesList: List<Map<String, String>> = gson.fromJson(jsonString, listType)
+            // 응답이 성공적인 경우
+            val jsonString = connection.inputStream.bufferedReader().use { it.readText() } // 응답을 문자열로 읽기
+            val gson = Gson() // Gson 객체 생성
+            val listType = object : TypeToken<List<Map<String, String>>>() {}.type // JSON 타입 정의
+            val newsList: List<Map<String, String>> = gson.fromJson(jsonString, listType) // JSON 파싱
 
-            val newsItems = articlesList.map { article ->
-                val title = article["title"] ?: ""
-                val description = article["description"] ?: ""
-                NewsItem(title, description)
+            // JSON 데이터를 NewsItem 객체로 변환
+            val newsItems = newsList.map { article ->
+                val category = article["category"] ?: "" // 카테고리 추출
+                val title = article["title"] ?: "" // 제목 추출
+                val description = article["summary"] ?: "" // 요약 추출
+                NewsItem(category, title, description) // NewsItem 객체 생성
             }
 
+            // 파싱된 결과를 로그에 출력
             Log.d("NewsData", newsItems.toString())
 
-            newsItems
+            newsItems // 결과 반환
         } else {
-            emptyList()
+            emptyList() // 응답이 실패한 경우 빈 리스트 반환
         }
     }
 }

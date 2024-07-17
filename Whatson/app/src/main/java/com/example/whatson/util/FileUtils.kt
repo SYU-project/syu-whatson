@@ -10,6 +10,7 @@ import java.io.FileWriter
 import java.io.BufferedReader
 import java.io.InputStreamReader// NewsItem class definition
 data class NewsItem(
+    val category: String,
     val title: String,
     val description: String
 )
