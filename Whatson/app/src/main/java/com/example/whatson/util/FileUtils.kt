@@ -62,3 +62,10 @@ fun loadArticleFavorites(context: Context): List<ArticleItem> {
         return gson.fromJson(it, itemType)
     }
 }
+
+fun loadNewsFromAssets(context: Context): List<NewsItem> {
+    val jsonString = context.assets.open("news.json").bufferedReader().use { it.readText() }
+    val gson = Gson()
+    val listType = object : TypeToken<List<NewsItem>>() {}.type
+    return gson.fromJson(jsonString, listType)
+}
