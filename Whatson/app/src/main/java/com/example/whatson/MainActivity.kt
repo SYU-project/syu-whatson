@@ -1,6 +1,5 @@
 package com.example.whatson
 
-
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
@@ -79,6 +78,7 @@ fun MainScreen() {
     val context = LocalContext.current
     var newsList by remember { mutableStateOf(listOf<NewsItem>()) }
     var articleList by remember { mutableStateOf(listOf<ArticleItem>()) }
+    var mixedList by remember { mutableStateOf(listOf<Any>())}
 
     LaunchedEffect(Unit) {
         // assets에서 뉴스 데이터 불러오기
@@ -88,6 +88,11 @@ fun MainScreen() {
         // Firebase에서 기사 데이터 가져오기
         val articles = fetchArticlesFromUrl()
         articleList = articles
+
+        // 리스트 합치고 섞기
+        val combinedList = (newsList + articleList).toMutableList()
+        combinedList.shuffle()
+        mixedList = combinedList
     }
 
     Scaffold(
@@ -95,11 +100,11 @@ fun MainScreen() {
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             LazyColumn {
-                items(newsList) { newsItem ->
-                    NewsCard(newsItem)
-                }
-                items(articleList) { articleItem ->
-                    ArticleCard(articleItem)
+                    items(mixedList) { item ->
+                        when (item) {
+                            is NewsItem -> NewsCard(item)
+                            is ArticleItem -> ArticleCard(item)
+                        }
                 }
             }
         }
