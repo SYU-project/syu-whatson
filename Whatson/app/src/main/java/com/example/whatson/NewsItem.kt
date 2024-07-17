@@ -113,24 +113,29 @@ fun ArticleCard(articleItem: ArticleItem) {
                 text = articleItem.title,
                 style = MaterialTheme.typography.headlineMedium
             )
-            LazyRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-            ) {
-                items(articleItem.imageUrl) { imageUrl ->
-                    AsyncImage(
-                        model = imageUrl,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(end = 8.dp),
-                        contentScale = ContentScale.Crop,
-                        placeholder = painterResource(id = R.drawable.daehae),
-                        error = painterResource(id = R.drawable.daehae)
-                    )
+
+            // 이미지가 있는 경우에만 LazyRow 표시
+            if(articleItem.imageUrl.isNotEmpty()) {
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                ) {
+                    items(articleItem.imageUrl) { imageUrl ->
+                        AsyncImage(
+                            model = imageUrl,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(end = 8.dp),
+                            contentScale = ContentScale.Crop,
+                            placeholder = painterResource(id = R.drawable.daehae),
+                            error = painterResource(id = R.drawable.daehae)
+                        )
+                    }
                 }
             }
+
             Text(
                 text = articleItem.description,
                 style = MaterialTheme.typography.bodyLarge
