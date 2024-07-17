@@ -103,7 +103,7 @@ fun ArticleCard(articleItem: ArticleItem) {
 
     // Update the isFavorite state based on the loaded favorites
     LaunchedEffect(favorites.value) {
-        isFavorite = favorites.value.any { it.title == articleItem.title && it.description == articleItem.description }
+        isFavorite = favorites.value.any { it.title == articleItem.title && it.description == articleItem.description && it.imageUrl == articleItem.imageUrl }
     }
     var expanded by remember { mutableStateOf(false) }
 
@@ -160,7 +160,7 @@ fun ArticleCard(articleItem: ArticleItem) {
                         .clickable {
                             val updatedFavorites = favorites.value.toMutableList()
                             if (isFavorite) {
-                                updatedFavorites.removeAll { it.title == articleItem.title && it.description == articleItem.description }
+                                updatedFavorites.removeAll { it.title == articleItem.title && it.description == articleItem.description && it.imageUrl == articleItem.imageUrl }
                             } else {
                                 updatedFavorites.add(articleItem)
                             }
