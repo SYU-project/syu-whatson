@@ -6,6 +6,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -138,7 +139,7 @@ fun ArticleCard(articleItem: ArticleItem) {
                                 model = imageUrl,
                                 contentDescription = null,
                                 modifier = Modifier
-                                    .fillMaxWidth()
+                                    .fillMaxHeight()
                                     .padding(end = 8.dp),
                                 contentScale = ContentScale.Crop,
                                 placeholder = painterResource(id = R.drawable.daehae),

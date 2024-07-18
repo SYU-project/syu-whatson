@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,11 +16,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.rememberNavController
 import com.example.whatson.ui.theme.WhatsOnTheme
 import com.example.whatson.util.ArticleItem
@@ -120,17 +130,17 @@ fun MainScreen() {
     LaunchedEffect(Unit) {
         // assets에서 뉴스 데이터 불러오기
 
-       /* val loadedNews = fetchNewsFromUrl()
-        newsList = loadedNews*/
+        val loadedNews = fetchNewsFromUrl()
+        newsList = loadedNews
 
         // Firebase에서 기사 데이터 가져오기
         val articles = fetchArticlesFromUrl()
         articleList = articles
 
         // 리스트 합치고 섞기
-        val combinedList = (articleList).toMutableList()
+        val combinedList = (newsList+articleList).toMutableList()
         combinedList.shuffle()
-        mixedList = articleList
+        mixedList = combinedList
     }
 
     Scaffold(
@@ -186,18 +196,48 @@ fun TabRowExample() {
             Tab(
                 selected = selectedTabIndex == index,
                 onClick = { selectedTabIndex = index },
-                text = { Text(tab) }
+                text = {Text(tab,fontSize = 10.5.sp)}
+
             )
         }
     }
 }
 @Composable
 fun SearchBar(query: TextFieldValue, onQueryChange: (TextFieldValue) -> Unit) {
-    TextField(
-        value = query,
-        onValueChange = onQueryChange,
-        label = { Text("Search") },
-        modifier = Modifier.fillMaxWidth()
-    )
+    val background: Painter = painterResource(id = R.drawable.component_9)
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp) // Add padding around the box if needed
+    ) {
+        Image(
+            painter = background,
+            contentDescription = null,
+            modifier = Modifier.fillMaxWidth()
+        )
+        BasicTextField(
+            value = query,
+            onValueChange = onQueryChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp), // Adjust padding inside the text field if needed
+            decorationBox = { innerTextField ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    if (query.text.isEmpty()) {
+                        Text(
+                            text = "검색",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        )
+                    }
+                    innerTextField()
+                }
+            }
+        )
+    }
 }
 
