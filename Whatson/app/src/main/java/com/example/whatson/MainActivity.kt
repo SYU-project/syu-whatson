@@ -18,7 +18,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.*
 import androidx.navigation.compose.rememberNavController
 import com.example.whatson.ui.theme.WhatsOnTheme
 import com.example.whatson.util.ArticleItem
@@ -188,7 +188,7 @@ fun TabRowExample() {
             Tab(
                 selected = selectedTabIndex == index,
                 onClick = { selectedTabIndex = index },
-                text = { Text(tab) }
+                text = { Text(tab, fontSize = 10.5.sp) } // 글자 크기 조정
             )
         }
     }
