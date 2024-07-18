@@ -130,7 +130,7 @@ fun MainScreen() {
     var articleList by remember { mutableStateOf(listOf<ArticleItem>()) }
     var mixedList by remember { mutableStateOf(listOf<Any>())}
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
-
+    var selectedTabIndex by remember { mutableStateOf(0) }
 
     LaunchedEffect(Unit) {
         // assets에서 뉴스 데이터 불러오기
@@ -146,6 +146,17 @@ fun MainScreen() {
         val combinedList = (newsList+articleList).toMutableList()
         combinedList.shuffle()
         mixedList = combinedList
+    }
+    fun filterListByTab(index: Int) {
+        val filteredList = when (index) {
+            1 -> newsList.filter { it.category == "economy" } + articleList
+            2 -> newsList.filter { it.category == "IT" } + articleList
+            3 -> newsList.filter { it.category == "society" } + articleList
+            4 -> newsList.filter { it.category == "culture" } + articleList
+            5 -> newsList.filter { it.category == "global" } + articleList
+            else -> newsList + articleList
+        }
+        mixedList = filteredList.shuffled() // 필터링된 리스트를 섞어서 mixedList에 할당
     }
 
     Scaffold(
@@ -163,7 +174,11 @@ fun MainScreen() {
                     SearchBar(searchQuery) { searchQuery = it }
                     Spacer(modifier = Modifier.height(8.dp))
                 }
-                TabRowExample()
+                TabRowExample { index ->
+                    selectedTabIndex = index
+                    filterListByTab(index)
+                }
+
                 Spacer(modifier = Modifier.height(8.dp))
 
                 val trimmedQuery = searchQuery.text.trim() // 검색어의 앞뒤 공백을 제거
@@ -191,7 +206,7 @@ fun MainScreen() {
     }
 }}
 @Composable
-fun TabRowExample() {
+fun TabRowExample(onTabSelected: (Int) -> Unit) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabs = listOf("전체", "경제", "IT", "사회", "문화", "글로벌")
 
@@ -202,9 +217,11 @@ fun TabRowExample() {
         tabs.forEachIndexed { index, tab ->
             Tab(
                 selected = selectedTabIndex == index,
-                onClick = { selectedTabIndex = index },
-                text = {Text(tab,fontSize = 10.5.sp)}
-
+                onClick = {
+                    selectedTabIndex = index
+                    onTabSelected(index) // 탭이 선택될 때 필터링 함수 호출
+                },
+                text = { Text(tab, fontSize = 10.5.sp) } // 글자 크기 조정
             )
         }
     }
@@ -247,4 +264,3 @@ fun SearchBar(query: TextFieldValue, onQueryChange: (TextFieldValue) -> Unit) {
         )
     }
 }
-
