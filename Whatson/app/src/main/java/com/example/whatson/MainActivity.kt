@@ -27,8 +27,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.TextFieldValue
+<<<<<<< HEAD
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+=======
+import androidx.compose.ui.unit.*
+>>>>>>> eb3a6b1a6cdae559194764b71f51921303c2877b
 import androidx.navigation.compose.rememberNavController
 import com.example.whatson.ui.theme.WhatsOnTheme
 import com.example.whatson.util.ArticleItem
@@ -149,7 +153,7 @@ fun MainScreen() {
         val scrollState = rememberLazyListState()
         val topBarVisible by remember {
             derivedStateOf {
-                scrollState.firstVisibleItemScrollOffset == 0
+                scrollState.firstVisibleItemScrollOffset == 0//스크롤을 화면 최상단으로 올렸을때 search창이 뜸(수정 예정)
             }
         }
         Box(modifier = Modifier.padding(innerPadding)) {
@@ -160,13 +164,15 @@ fun MainScreen() {
                 }
                 TabRowExample()
                 Spacer(modifier = Modifier.height(8.dp))
+
+                val trimmedQuery = searchQuery.text.trim() // 검색어의 앞뒤 공백을 제거
                 val filteredList = mixedList.filter { item ->
                     when (item) {
-                        is NewsItem -> item.title.contains(searchQuery.text, ignoreCase = true) ||
-                                item.description.contains(searchQuery.text, ignoreCase = true)
-                        is ArticleItem -> item.title.contains(searchQuery.text, ignoreCase = true) ||
-                                item.description.contains(searchQuery.text, ignoreCase = true)
-                        else -> false
+                        is NewsItem -> item.title.contains(trimmedQuery, ignoreCase = true) || // 항목이 NewsItem 타입이면, 제목이 공백이 제거된 검색어를 포함하는지 확인 (대소문자 구분 없음)
+                                item.description.contains(trimmedQuery, ignoreCase = true)
+                        is ArticleItem -> item.title.contains(trimmedQuery, ignoreCase = true) || // 항목이 ArticleItem 타입이면, 제목이 공백이 제거된 검색어를 포함하는지 확인 (대소문자 구분 없음)
+                                item.description.contains(trimmedQuery, ignoreCase = true)
+                        else -> false // 다른 타입이면, 필터링된 리스트에 포함시키지 않음
                     }
                 }
                 LazyColumn(
