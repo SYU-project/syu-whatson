@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "355546740556",
+    "project_id": "whatson-93370",
+    "storage_bucket": "whatson-93370.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:355546740556:android:e05afd271c2f1b6bed41e9",
+        "android_client_info": {
+          "package_name": "com.example.whatson"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDW2i283vdbGZT_6R_VRuFYe_XvWPu6sn8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
