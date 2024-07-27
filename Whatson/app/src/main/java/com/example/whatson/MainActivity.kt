@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,6 +45,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.SwipeRefreshState
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,9 +59,12 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+
+
 suspend fun fetchArticlesFromUrl(): List<ArticleItem> {
     // JSON 파일 URL
-    val urlString = "https://firebasestorage.googleapis.com/v0/b/whatson-93370.appspot.com/o/article%2Farticle.json?alt=media&token=70e0c119-e396-4a3d-998f-a1db85e77c21"
+    val urlString = "https://firebasestorage.googleapis.com/v0/b/whatson-93370.appspot.com/o/article%2Farticle.json?alt=media&token=14c28589-fd32-46d8-977a-029260d20ace"
 
     return withContext(Dispatchers.IO) {
         val url = URL(urlString) // URL 객체 생성
@@ -90,6 +97,7 @@ suspend fun fetchArticlesFromUrl(): List<ArticleItem> {
         }
     }
 }
+
 //아직 서버 안열려서 안해놓음
 suspend fun fetchNewsFromUrl(): List<NewsItem> {
     val urlString = "http://210.109.52.162:5000/summaries"
@@ -131,6 +139,7 @@ fun MainScreen() {
     var mixedList by remember { mutableStateOf(listOf<Any>())}
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     var selectedTabIndex by remember { mutableStateOf(0) }
+    var swipeRefreshState = rememberSwipeRefreshState(isRefreshing = false)
 
     LaunchedEffect(Unit) {
         // assets에서 뉴스 데이터 불러오기
@@ -169,6 +178,17 @@ fun MainScreen() {
             }
         }
         Box(modifier = Modifier.padding(innerPadding)) {
+
+            // 새로고침
+            SwipeRefresh(
+                state = swipeRefreshState,
+                onRefresh = {
+                    val combinedList = (newsList + articleList).toMutableList()
+                    combinedList.shuffle()
+                    mixedList = combinedList
+                    swipeRefreshState.isRefreshing = false
+                }) {
+
             Column(modifier = Modifier.padding(16.dp)) {
                 if (topBarVisible){
                     SearchBar(searchQuery) { searchQuery = it }
@@ -200,6 +220,7 @@ fun MainScreen() {
                             is NewsItem -> NewsCard(item)
                             is ArticleItem -> ArticleCard(item)
                         }
+                    }
                 }
             }
         }
