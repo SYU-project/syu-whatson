@@ -48,6 +48,13 @@ import java.net.URL
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshState
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.*
+import androidx.compose.ui.draw.clip
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -136,10 +143,11 @@ fun MainScreen() {
     val navController = rememberNavController()
     var newsList by remember { mutableStateOf(listOf<NewsItem>()) }
     var articleList by remember { mutableStateOf(listOf<ArticleItem>()) }
-    var mixedList by remember { mutableStateOf(listOf<Any>())}
+    var mixedList by remember { mutableStateOf(listOf<Any>()) }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     var selectedTabIndex by remember { mutableStateOf(0) }
     var swipeRefreshState = rememberSwipeRefreshState(isRefreshing = false)
+    var expandedCard by remember { mutableStateOf<Any?>(null) } // 확장된 카드
 
     LaunchedEffect(Unit) {
         // assets에서 뉴스 데이터 불러오기
@@ -152,7 +160,7 @@ fun MainScreen() {
         articleList = articles
 
         // 리스트 합치고 섞기
-        val combinedList = (newsList+articleList).toMutableList()
+        val combinedList = (newsList + articleList).toMutableList()
         combinedList.shuffle()
         mixedList = combinedList
     }
@@ -174,7 +182,7 @@ fun MainScreen() {
         val scrollState = rememberLazyListState()
         val topBarVisible by remember {
             derivedStateOf {
-                scrollState.firstVisibleItemScrollOffset == 0//스크롤을 화면 최상단으로 올렸을때 search창이 뜸(수정 예정)
+                scrollState.firstVisibleItemScrollOffset == 0 // 스크롤을 화면 최상단으로 올렸을때 search창이 뜸(수정 예정)
             }
         }
         Box(modifier = Modifier.padding(innerPadding)) {
@@ -189,43 +197,74 @@ fun MainScreen() {
                     swipeRefreshState.isRefreshing = false
                 }) {
 
-            Column(modifier = Modifier.padding(16.dp)) {
-                if (topBarVisible){
-                    SearchBar(searchQuery) { searchQuery = it }
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-                TabRowExample { index ->
-                    selectedTabIndex = index
-                    filterListByTab(index)
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                val trimmedQuery = searchQuery.text.trim() // 검색어의 앞뒤 공백을 제거
-                val filteredList = mixedList.filter { item ->
-                    when (item) {
-                        is NewsItem -> item.title.contains(trimmedQuery, ignoreCase = true) || // 항목이 NewsItem 타입이면, 제목이 공백이 제거된 검색어를 포함하는지 확인 (대소문자 구분 없음)
-                                item.description.contains(trimmedQuery, ignoreCase = true)
-                        is ArticleItem -> item.title.contains(trimmedQuery, ignoreCase = true) || // 항목이 ArticleItem 타입이면, 제목이 공백이 제거된 검색어를 포함하는지 확인 (대소문자 구분 없음)
-                                item.description.contains(trimmedQuery, ignoreCase = true)
-                        else -> false // 다른 타입이면, 필터링된 리스트에 포함시키지 않음
+                Column(modifier = Modifier.padding(16.dp)) {
+                    if (topBarVisible) {
+                        SearchBar(searchQuery) { searchQuery = it }
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
-                }
-                LazyColumn(
-                    state = scrollState,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(filteredList) { item ->
+                    TabRowExample { index ->
+                        selectedTabIndex = index
+                        filterListByTab(index)
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    val trimmedQuery = searchQuery.text.trim() // 검색어의 앞뒤 공백을 제거
+                    val filteredList = mixedList.filter { item ->
                         when (item) {
-                            is NewsItem -> NewsCard(item)
-                            is ArticleItem -> ArticleCard(item)
+                            is NewsItem -> item.title.contains(
+                                trimmedQuery,
+                                ignoreCase = true
+                            ) || // 항목이 NewsItem 타입이면, 제목이 공백이 제거된 검색어를 포함하는지 확인 (대소문자 구분 없음)
+                                    item.description.contains(trimmedQuery, ignoreCase = true)
+
+                            is ArticleItem -> item.title.contains(
+                                trimmedQuery,
+                                ignoreCase = true
+                            ) || // 항목이 ArticleItem 타입이면, 제목이 공백이 제거된 검색어를 포함하는지 확인 (대소문자 구분 없음)
+                                    item.description.contains(trimmedQuery, ignoreCase = true)
+
+                            else -> false // 다른 타입이면, 필터링된 리스트에 포함시키지 않음
+                        }
+                    }
+
+                    LazyColumn(
+                        state = scrollState,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(filteredList) { item ->
+                            val isExpanded = (item == expandedCard)
+                            val cardSize by animateDpAsState(if (isExpanded == true) 300.dp else 150.dp) // 카드 크기 애니메이션
+                            val coroutineScope = rememberCoroutineScope()
+
+                            Box(
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .height(cardSize)
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable {
+                                        if (isExpanded) {
+                                            expandedCard = null
+                                        } else {
+                                            expandedCard = item
+                                        }
+                                    }
+                            ) {
+
+                                when (item) {
+                                    is NewsItem -> NewsCard(item)
+                                    is ArticleItem -> ArticleCard(item)
+                                }
+                            }
                         }
                     }
                 }
             }
         }
     }
-}}
+}
+
 @Composable
 fun TabRowExample(onTabSelected: (Int) -> Unit) {
     var selectedTabIndex by remember { mutableStateOf(0) }
@@ -247,6 +286,7 @@ fun TabRowExample(onTabSelected: (Int) -> Unit) {
         }
     }
 }
+
 @Composable
 fun SearchBar(query: TextFieldValue, onQueryChange: (TextFieldValue) -> Unit) {
     val background: Painter = painterResource(id = R.drawable.component_9)
@@ -285,3 +325,4 @@ fun SearchBar(query: TextFieldValue, onQueryChange: (TextFieldValue) -> Unit) {
         )
     }
 }
+
