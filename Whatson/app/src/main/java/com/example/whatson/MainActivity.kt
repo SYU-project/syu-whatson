@@ -100,6 +100,7 @@ suspend fun fetchArticlesFromUrl(): List<ArticleItem> {
 
             articleItems // 결과 반환
         } else {
+            Log.d("error","응답 실패")
             emptyList() // 응답이 실패한 경우 빈 리스트 반환
         }
     }
