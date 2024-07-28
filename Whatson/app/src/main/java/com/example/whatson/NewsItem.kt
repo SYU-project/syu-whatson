@@ -1,17 +1,22 @@
 package com.example.whatson
 
+import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.TabRowDefaults.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Card
@@ -93,7 +98,7 @@ fun NewsCard(newsItem: NewsItem) {
         }
     }
 }
-
+@OptIn( ExperimentalFoundationApi::class)
 @Composable
 fun ArticleCard(articleItem: ArticleItem) {
     var isFavorite by remember { mutableStateOf(false) }
@@ -113,46 +118,68 @@ fun ArticleCard(articleItem: ArticleItem) {
             modifier = Modifier
                 .padding(8.dp)
                 .fillMaxWidth()
-                .clickable { expanded = !expanded }
+                .clickable {
+                    val intent = Intent(context, ArticleDetailViewActivity::class.java).apply {
+                        putExtra("articleItem", articleItem)
+                    }
+                    context.startActivity(intent)
+                }
                 .animateContentSize(animationSpec = tween(durationMillis = 300)),
             shape = MaterialTheme.shapes.medium
         ) {
             Column(
                 modifier = Modifier
-                    .background(Color.LightGray)
+                    .background(Color.White)
                     .padding(16.dp)
             ) {
+
+
+
+                // 이미지가 있는 경우에만 Pager 표시
+
+                if (articleItem.imageUrl.isNotEmpty()) {
+                    val pagerState = rememberPagerState(
+                        pageCount = { articleItem.imageUrl.size }
+                    )
+
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(300.dp)
+                    ) { page ->
+                        AsyncImage(
+                            model = articleItem.imageUrl[page],
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop,
+                            placeholder = painterResource(id = R.drawable.daehae),
+                            error = painterResource(id = R.drawable.daehae)
+                        )
+                    }
+                }
                 Text(
                     text = articleItem.title,
                     style = MaterialTheme.typography.headlineMedium
                 )
 
-                // 이미지가 있는 경우에만 LazyRow 표시
-                if (articleItem.imageUrl.isNotEmpty()) {
-                    LazyRow(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                    ) {
-                        items(articleItem.imageUrl) { imageUrl ->
-                            AsyncImage(
-                                model = imageUrl,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .fillMaxHeight()
-                                    .padding(end = 8.dp),
-                                contentScale = ContentScale.Crop,
-                                placeholder = painterResource(id = R.drawable.daehae),
-                                error = painterResource(id = R.drawable.daehae)
-                            )
-                        }
-                    }
-                }
-
-                Text(
+               /* Text(
                     text = articleItem.description,
                     style = MaterialTheme.typography.bodyLarge
-                )
+                )*/
+               Row {
+                   Text(text = articleItem.date,
+                       style = MaterialTheme.typography.bodySmall,
+                       modifier = Modifier
+                           .align(Alignment.Top)
+                   )
+                   Spacer(modifier = Modifier.weight(1f))
+
+                   Text(text = articleItem.writer,
+                        style = MaterialTheme.typography.bodyMedium,
+                       modifier = Modifier
+                           .align(Alignment.Top)
+                   )}
                 Icon(
                     imageVector = Icons.Default.Favorite,
                     contentDescription = "Favorite",
@@ -171,7 +198,17 @@ fun ArticleCard(articleItem: ArticleItem) {
                         },
                     tint = if (isFavorite) Color.Red else Color.Gray
                 )
+                Spacer(modifier = Modifier.height(8.dp))
+                Divider(
+                    color = Color.Gray.copy(alpha = 0.6f),
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
             }
         }
     }
 }
+
+
+
+

@@ -1,10 +1,14 @@
 package com.example.whatson
 
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.view.WindowInsetsController
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -29,7 +33,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -50,6 +56,23 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             WhatsOnTheme {
+                val darkTheme = isSystemInDarkTheme()
+                val statusBarColor = if (darkTheme) Color.Black else Color(0xFFFFFFFF) // 원하는 색상으로 변경
+                window.statusBarColor = statusBarColor.toArgb()
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    window.insetsController?.setSystemBarsAppearance(
+                        if (darkTheme) {
+                            0
+                        } else {
+                            WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                        },
+                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                    )
+                } else {
+                    @Suppress("DEPRECATION")
+                    window.decorView.systemUiVisibility = if (darkTheme) 0 else View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                }
                 MainScreen()
             }
         }
@@ -70,7 +93,6 @@ suspend fun fetchArticlesFromUrl(): List<ArticleItem> {
             val gson = Gson() // Gson 객체 생성
             val mapType = object : TypeToken<Map<String, List<Map<String, Any>>>>() {}.type // JSON 타입 정의
             val articlesMap: Map<String, List<Map<String, Any>>> = gson.fromJson(jsonString, mapType) // JSON 파싱
-
             val articleItems = mutableListOf<ArticleItem>()
             for (category in articlesMap.keys) {
                 val articles = articlesMap[category] ?: continue
@@ -78,7 +100,9 @@ suspend fun fetchArticlesFromUrl(): List<ArticleItem> {
                     val title = article["Title"] as? String ?: "" // 제목 추출
                     val description = article["Content"] as? String ?: "" // 내용 추출
                     val imageUrl = (article["imageurl"] as? List<String>) ?: listOf() // 이미지 URL 리스트 추출
-                    articleItems.add(ArticleItem(title, description, imageUrl)) // ArticleItem 객체 생성 및 리스트에 추가
+                    val writer = article["writer"] as? String ?:""// 글쓴이 추출
+                    val date = article ["date"] as? String ?:"날짜미정" //날짜 추출
+                    articleItems.add(ArticleItem(title, description, imageUrl,writer,date)) // ArticleItem 객체 생성 및 리스트에 추가
                 }
             }
             // JSON 파싱 결과를 로그에 출력
@@ -135,15 +159,15 @@ fun MainScreen() {
     LaunchedEffect(Unit) {
         // assets에서 뉴스 데이터 불러오기
 
-        val loadedNews = fetchNewsFromUrl()
-        newsList = loadedNews
+        /*val loadedNews = fetchNewsFromUrl()
+        newsList = loadedNews*/
 
         // Firebase에서 기사 데이터 가져오기
         val articles = fetchArticlesFromUrl()
         articleList = articles
 
         // 리스트 합치고 섞기
-        val combinedList = (newsList+articleList).toMutableList()
+        val combinedList = (articleList).toMutableList()
         combinedList.shuffle()
         mixedList = combinedList
     }
@@ -169,7 +193,7 @@ fun MainScreen() {
             }
         }
         Box(modifier = Modifier.padding(innerPadding)) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column() {
                 if (topBarVisible){
                     SearchBar(searchQuery) { searchQuery = it }
                     Spacer(modifier = Modifier.height(8.dp))
@@ -221,7 +245,7 @@ fun TabRowExample(onTabSelected: (Int) -> Unit) {
                     selectedTabIndex = index
                     onTabSelected(index) // 탭이 선택될 때 필터링 함수 호출
                 },
-                text = { Text(tab, fontSize = 10.5.sp) } // 글자 크기 조정
+                text = { Text(tab, style = MaterialTheme.typography.titleMedium) } // 글자 크기 조정
             )
         }
     }
