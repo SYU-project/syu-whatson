@@ -69,6 +69,10 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.9.3")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3") // 추가: OkHttp logging interceptor
 
+    // 추가: Swipe Refresh Layout
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation("com.google.accompanist:accompanist-swiperefresh:0.23.1")
+
     // 추가: Koin for dependency injection
     implementation("io.insert-koin:koin-android:3.3.3")
     implementation("io.insert-koin:koin-android-compat:3.3.3")
