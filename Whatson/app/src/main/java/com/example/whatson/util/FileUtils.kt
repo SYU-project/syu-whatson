@@ -11,14 +11,17 @@ import java.io.FileWriter
 data class NewsItem(
     val category: String,
     val title: String,
-    val description: String
+    val description: String,
+    var viewCount: Int = 0 // 뷰 카운트 속성 추가
 )
 
 // ArticleItem class definition
 data class ArticleItem(
     val title: String,
     val description: String,
-    val imageUrl: List<String>
+    val imageUrl: List<String>,
+    var viewCount: Int = 0 // 뷰 카운트 속성 추가
+
 )
 
 // Function to save favorites
