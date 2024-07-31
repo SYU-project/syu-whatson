@@ -112,9 +112,9 @@ suspend fun fetchNewsFromUrl(): List<NewsItem> {
     }
 }
 
-suspend fun sendDataToServer(): List<String> {
+suspend fun sendDataToServer(): List<String> { //서버에 데이터 요청하는 함수
     val urlString = "http://210.109.52.162:5000/hi"
-    val data = listOf("h1", "h2", "h3")
+    val data = listOf("h1", "h2", "h3") // 임의로 넣은 데이터
     return withContext(Dispatchers.IO) {
         try {
             val url = URL(urlString)
@@ -206,7 +206,7 @@ fun MainScreen() {
             SwipeRefresh(
                 state = swipeRefreshState,
                 onRefresh = {
-                    filterListByTab(selectedTabIndex)
+                    filterListByTab(selectedTabIndex) // 스크롤 당길 시 새로고침 수정
                     swipeRefreshState.isRefreshing = false
                 }) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -214,6 +214,7 @@ fun MainScreen() {
                         SearchBar(searchQuery) { searchQuery = it }
                         Spacer(modifier = Modifier.height(8.dp))
                     }
+                    // 서버에 요청 보낼 트리거 버튼 (임시, 값 확인용)
                     Button(onClick = {
                         coroutineScope.launch {
                             val response = sendDataToServer()
@@ -221,9 +222,11 @@ fun MainScreen() {
                             serverResponse = response
                         }
                     }) {
-                        Text(serverResponse.getOrElse(0) { "Send Data to Server" })
+                        Text("Send Data to Server")
                     }
                     Spacer(modifier = Modifier.height(8.dp))
+                    // 서버 응답 값을 표시할 텍스트 상자 추가 (임시, 값 확인용)
+                    Text(serverResponse.joinToString(", "), modifier = Modifier.padding(8.dp))
                     TabRowExample { index ->
                         selectedTabIndex = index
                         filterListByTab(index)
