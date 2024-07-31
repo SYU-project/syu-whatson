@@ -28,6 +28,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.math.max
@@ -79,7 +80,6 @@ suspend fun fetchArticlesFromUrl(): List<ArticleItem> {
     }
 }
 
-// 아직 서버 안열려서 안해놓음
 suspend fun fetchNewsFromUrl(): List<NewsItem> {
     val urlString = "http://210.109.52.162:5000/summaries"
 
@@ -112,6 +112,39 @@ suspend fun fetchNewsFromUrl(): List<NewsItem> {
     }
 }
 
+suspend fun sendDataToServer(): List<String> {
+    val urlString = "http://210.109.52.162:5000/hi"
+    val data = listOf("h1", "h2", "h3")
+    return withContext(Dispatchers.IO) {
+        try {
+            val url = URL(urlString)
+            val connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = "POST"
+            connection.doOutput = true
+            connection.setRequestProperty("Content-Type", "application/json; utf-8")
+            connection.setRequestProperty("Accept", "application/json")
+
+            val jsonInputString = Gson().toJson(data)
+            connection.outputStream.use { outputStream ->
+                outputStream.write(jsonInputString.toByteArray(Charsets.UTF_8))
+            }
+
+            if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                val jsonString = connection.inputStream.bufferedReader().use { it.readText() }
+                val gson = Gson()
+                val listType = object : TypeToken<List<String>>() {}.type
+                gson.fromJson(jsonString, listType)
+            } else {
+                Log.e("sendDataToServer", "Server responded with: ${connection.responseCode}")
+                emptyList()
+            }
+        } catch (e: Exception) {
+            Log.e("sendDataToServer", "Failed to send data to server", e)
+            emptyList()
+        }
+    }
+}
+
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
@@ -119,12 +152,13 @@ fun MainScreen() {
     var articleList by remember { mutableStateOf(listOf<ArticleItem>()) }
     var mixedList by remember { mutableStateOf(listOf<Any>()) }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
+    var serverResponse by remember { mutableStateOf(listOf<String>()) } // 서버 통신 테스트용
     var selectedTabIndex by remember { mutableStateOf(0) }
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = false)
+    val coroutineScope = rememberCoroutineScope() // 임시 버튼 추가용
 
     LaunchedEffect(Unit) {
         // assets에서 뉴스 데이터 불러오기
-
         val loadedNews = fetchNewsFromUrl()
         newsList = loadedNews
 
@@ -169,35 +203,40 @@ fun MainScreen() {
             }
         }
         Box(modifier = Modifier.padding(innerPadding)) {
-
-            // 새로고침
             SwipeRefresh(
                 state = swipeRefreshState,
                 onRefresh = {
                     filterListByTab(selectedTabIndex)
                     swipeRefreshState.isRefreshing = false
                 }) {
-
                 Column(modifier = Modifier.padding(16.dp)) {
                     if (topBarVisible) {
                         SearchBar(searchQuery) { searchQuery = it }
                         Spacer(modifier = Modifier.height(8.dp))
                     }
+                    Button(onClick = {
+                        coroutineScope.launch {
+                            val response = sendDataToServer()
+                            Log.d("MainScreen", "Server response: $response")
+                            serverResponse = response
+                        }
+                    }) {
+                        Text(serverResponse.getOrElse(0) { "Send Data to Server" })
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
                     TabRowExample { index ->
                         selectedTabIndex = index
                         filterListByTab(index)
                     }
-
                     Spacer(modifier = Modifier.height(8.dp))
-
-                    val trimmedQuery = searchQuery.text.trim() // 검색어의 앞뒤 공백을 제거
+                    val trimmedQuery = searchQuery.text.trim()
                     val filteredList = mixedList.filter { item ->
                         when (item) {
-                            is NewsItem -> item.title.contains(trimmedQuery, ignoreCase = true) || // 항목이 NewsItem 타입이면, 제목이 공백이 제거된 검색어를 포함하는지 확인 (대소문자 구분 없음)
+                            is NewsItem -> item.title.contains(trimmedQuery, ignoreCase = true) ||
                                     item.description.contains(trimmedQuery, ignoreCase = true)
-                            is ArticleItem -> item.title.contains(trimmedQuery, ignoreCase = true) || // 항목이 ArticleItem 타입이면, 제목이 공백이 제거된 검색어를 포함하는지 확인 (대소문자 구분 없음)
+                            is ArticleItem -> item.title.contains(trimmedQuery, ignoreCase = true) ||
                                     item.description.contains(trimmedQuery, ignoreCase = true)
-                            else -> false // 다른 타입이면, 필터링된 리스트에 포함시키지 않음
+                            else -> false
                         }
                     }
                     LazyColumn(
@@ -208,11 +247,11 @@ fun MainScreen() {
                             when (item) {
                                 is NewsItem -> {
                                     NewsCard(item)
-                                    item.viewCount += 1 // 뷰 카운트 증가
+                                    item.viewCount += 1
                                 }
                                 is ArticleItem -> {
                                     ArticleCard(item)
-                                    item.viewCount += 1 // 뷰 카운트 증가
+                                    item.viewCount += 1
                                 }
                             }
                         }
@@ -227,7 +266,6 @@ fun MainScreen() {
 fun TabRowExample(onTabSelected: (Int) -> Unit) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabs = listOf("전체", "경제", "IT", "사회", "문화", "글로벌")
-
     TabRow(
         selectedTabIndex = selectedTabIndex,
         modifier = Modifier.fillMaxWidth()
@@ -237,9 +275,9 @@ fun TabRowExample(onTabSelected: (Int) -> Unit) {
                 selected = selectedTabIndex == index,
                 onClick = {
                     selectedTabIndex = index
-                    onTabSelected(index) // 탭이 선택될 때 필터링 함수 호출
+                    onTabSelected(index)
                 },
-                text = { Text(tab, fontSize = 10.5.sp) } // 글자 크기 조정
+                text = { Text(tab, fontSize = 10.5.sp) }
             )
         }
     }
@@ -248,11 +286,10 @@ fun TabRowExample(onTabSelected: (Int) -> Unit) {
 @Composable
 fun SearchBar(query: TextFieldValue, onQueryChange: (TextFieldValue) -> Unit) {
     val background: Painter = painterResource(id = R.drawable.component_9)
-
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp) // Add padding around the box if needed
+            .padding(8.dp)
     ) {
         Image(
             painter = background,
@@ -264,11 +301,10 @@ fun SearchBar(query: TextFieldValue, onQueryChange: (TextFieldValue) -> Unit) {
             onValueChange = onQueryChange,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp), // Adjust padding inside the text field if needed
+                .padding(16.dp),
             decorationBox = { innerTextField ->
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     if (query.text.isEmpty()) {
                         Text(
