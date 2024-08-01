@@ -2,11 +2,13 @@ package com.example.whatson.util
 
 
 import android.content.Context
+import android.os.Parcelable
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
+import java.io.Serializable
 
 data class NewsItem(
     val category: String,
@@ -18,8 +20,11 @@ data class NewsItem(
 data class ArticleItem(
     val title: String,
     val description: String,
-    val imageUrl: List<String>
-)
+    val imageUrl: List<String>,
+    val writer:String,
+    val date:String
+): Serializable
+
 
 // Function to save favorites
 fun saveNewsFavorites(context: Context, favorites: List<NewsItem>) {

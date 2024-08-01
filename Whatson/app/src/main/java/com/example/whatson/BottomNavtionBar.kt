@@ -37,7 +37,7 @@ fun BottomNavigationBar(navController: NavHostController) {
     val colors = MaterialTheme.colorScheme
 
     BottomNavigation(
-        backgroundColor = colors.primary,
+        backgroundColor = colors.onPrimary,
         contentColor = colors.onPrimary
     ) {
         // 현재 네비게이션 상태를 관찰

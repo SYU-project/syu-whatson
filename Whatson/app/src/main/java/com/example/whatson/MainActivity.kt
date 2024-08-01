@@ -1,11 +1,14 @@
 package com.example.whatson
 
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.view.WindowInsetsController
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.BasicTextField
@@ -30,11 +34,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import androidx.navigation.compose.rememberNavController
 import com.example.whatson.ui.theme.WhatsOnTheme
 import com.example.whatson.util.ArticleItem
@@ -45,26 +53,37 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.SwipeRefreshState
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             WhatsOnTheme {
+                val darkTheme = isSystemInDarkTheme()
+                val statusBarColor = if (darkTheme) Color.Black else Color(0xFFFFFFFF) // 원하는 색상으로 변경
+                window.statusBarColor = statusBarColor.toArgb()
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    window.insetsController?.setSystemBarsAppearance(
+                        if (darkTheme) {
+                            0
+                        } else {
+                            WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                        },
+                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                    )
+                } else {
+                    @Suppress("DEPRECATION")
+                    window.decorView.systemUiVisibility = if (darkTheme) 0 else View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                }
                 MainScreen()
             }
         }
     }
 }
-
-
-
 suspend fun fetchArticlesFromUrl(): List<ArticleItem> {
     // JSON 파일 URL
-    val urlString = "https://firebasestorage.googleapis.com/v0/b/whatson-93370.appspot.com/o/article%2Farticle.json?alt=media&token=14c28589-fd32-46d8-977a-029260d20ace"
+    val urlString = "https://firebasestorage.googleapis.com/v0/b/whatson-93370.appspot.com/o/article%2Farticle.json?alt=media&token=70e0c119-e396-4a3d-998f-a1db85e77c21"
 
     return withContext(Dispatchers.IO) {
         val url = URL(urlString) // URL 객체 생성
@@ -77,7 +96,6 @@ suspend fun fetchArticlesFromUrl(): List<ArticleItem> {
             val gson = Gson() // Gson 객체 생성
             val mapType = object : TypeToken<Map<String, List<Map<String, Any>>>>() {}.type // JSON 타입 정의
             val articlesMap: Map<String, List<Map<String, Any>>> = gson.fromJson(jsonString, mapType) // JSON 파싱
-
             val articleItems = mutableListOf<ArticleItem>()
             for (category in articlesMap.keys) {
                 val articles = articlesMap[category] ?: continue
@@ -85,7 +103,9 @@ suspend fun fetchArticlesFromUrl(): List<ArticleItem> {
                     val title = article["Title"] as? String ?: "" // 제목 추출
                     val description = article["Content"] as? String ?: "" // 내용 추출
                     val imageUrl = (article["imageurl"] as? List<String>) ?: listOf() // 이미지 URL 리스트 추출
-                    articleItems.add(ArticleItem(title, description, imageUrl)) // ArticleItem 객체 생성 및 리스트에 추가
+                    val writer = article["writer"] as? String ?:""// 글쓴이 추출
+                    val date = article ["date"] as? String ?:"날짜미정" //날짜 추출
+                    articleItems.add(ArticleItem(title, description, imageUrl,writer,date)) // ArticleItem 객체 생성 및 리스트에 추가
                 }
             }
             // JSON 파싱 결과를 로그에 출력
@@ -97,7 +117,6 @@ suspend fun fetchArticlesFromUrl(): List<ArticleItem> {
         }
     }
 }
-
 //아직 서버 안열려서 안해놓음
 suspend fun fetchNewsFromUrl(): List<NewsItem> {
     val urlString = "http://210.109.52.162:5000/summaries"
@@ -136,14 +155,18 @@ fun MainScreen() {
     val navController = rememberNavController()
     var newsList by remember { mutableStateOf(listOf<NewsItem>()) }
     var articleList by remember { mutableStateOf(listOf<ArticleItem>()) }
-    var mixedList by remember { mutableStateOf(listOf<Any>())}
+    var mixedList by remember { mutableStateOf(listOf<Any>()) }
+    var initialMixedList by remember { mutableStateOf(listOf<Any>()) }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     var selectedTabIndex by remember { mutableStateOf(0) }
     var swipeRefreshState = rememberSwipeRefreshState(isRefreshing = false)
 
+    // 각 탭의 스크롤 상태를 저장하는 맵
+    val scrollStates = remember { mutableMapOf<Int, LazyListState>() }
+    var currentScrollState by remember { mutableStateOf(LazyListState()) }
+
     LaunchedEffect(Unit) {
         // assets에서 뉴스 데이터 불러오기
-
         val loadedNews = fetchNewsFromUrl()
         newsList = loadedNews
 
@@ -152,20 +175,25 @@ fun MainScreen() {
         articleList = articles
 
         // 리스트 합치고 섞기
-        val combinedList = (newsList+articleList).toMutableList()
+        val combinedList = (newsList + articleList).toMutableList()
         combinedList.shuffle()
         mixedList = combinedList
+        initialMixedList = combinedList
+
+        // 초기 스크롤 상태 저장
+        scrollStates[0] = currentScrollState
     }
     fun filterListByTab(index: Int) {
         val filteredList = when (index) {
-            1 -> newsList.filter { it.category == "economy" } + articleList
-            2 -> newsList.filter { it.category == "IT" } + articleList
-            3 -> newsList.filter { it.category == "society" } + articleList
-            4 -> newsList.filter { it.category == "culture" } + articleList
-            5 -> newsList.filter { it.category == "global" } + articleList
+            0 -> initialMixedList
+            1 -> newsList.filter { it.category == "economy" }
+            2 -> newsList.filter { it.category == "IT" }
+            3 -> newsList.filter { it.category == "society" }
+            4 -> newsList.filter { it.category == "culture" }
+            5 -> newsList.filter { it.category == "global" }
             else -> newsList + articleList
         }
-        mixedList = filteredList.shuffled() // 필터링된 리스트를 섞어서 mixedList에 할당
+        mixedList = filteredList // 필터링된 리스트를 섞지 않고 mixedList에 할당
     }
 
     Scaffold(
@@ -178,25 +206,24 @@ fun MainScreen() {
             }
         }
         Box(modifier = Modifier.padding(innerPadding)) {
-
-            // 새로고침
-            SwipeRefresh(
-                state = swipeRefreshState,
-                onRefresh = {
-                    val combinedList = (newsList + articleList).toMutableList()
-                    combinedList.shuffle()
-                    mixedList = combinedList
-                    swipeRefreshState.isRefreshing = false
-                }) {
-
-            Column(modifier = Modifier.padding(16.dp)) {
-                if (topBarVisible){
+            Column() {
+                if (topBarVisible) {
                     SearchBar(searchQuery) { searchQuery = it }
                     Spacer(modifier = Modifier.height(8.dp))
                 }
-                TabRowExample { index ->
+                TabRowExample(selectedTabIndex) { index ->
+                    // 현재 탭의 스크롤 상태 저장
+                    scrollStates[selectedTabIndex] = currentScrollState
+
                     selectedTabIndex = index
                     filterListByTab(index)
+
+                    // 새 탭의 스크롤 상태 로드 (없으면 최상단으로)
+                    currentScrollState =
+                        scrollStates.getOrElse(selectedTabIndex) { LazyListState() }
+                    if (scrollStates[selectedTabIndex] == null) {
+                        scrollStates[selectedTabIndex] = LazyListState()
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -204,31 +231,49 @@ fun MainScreen() {
                 val trimmedQuery = searchQuery.text.trim() // 검색어의 앞뒤 공백을 제거
                 val filteredList = mixedList.filter { item ->
                     when (item) {
-                        is NewsItem -> item.title.contains(trimmedQuery, ignoreCase = true) || // 항목이 NewsItem 타입이면, 제목이 공백이 제거된 검색어를 포함하는지 확인 (대소문자 구분 없음)
+                        is NewsItem -> item.title.contains(
+                            trimmedQuery,
+                            ignoreCase = true
+                        ) || // 항목이 NewsItem 타입이면, 제목이 공백이 제거된 검색어를 포함하는지 확인 (대소문자 구분 없음)
                                 item.description.contains(trimmedQuery, ignoreCase = true)
-                        is ArticleItem -> item.title.contains(trimmedQuery, ignoreCase = true) || // 항목이 ArticleItem 타입이면, 제목이 공백이 제거된 검색어를 포함하는지 확인 (대소문자 구분 없음)
+
+                        is ArticleItem -> item.title.contains(
+                            trimmedQuery,
+                            ignoreCase = true
+                        ) || // 항목이 ArticleItem 타입이면, 제목이 공백이 제거된 검색어를 포함하는지 확인 (대소문자 구분 없음)
                                 item.description.contains(trimmedQuery, ignoreCase = true)
+
                         else -> false // 다른 타입이면, 필터링된 리스트에 포함시키지 않음
                     }
                 }
-                LazyColumn(
-                    state = scrollState,
-                    modifier = Modifier.fillMaxSize()
+                SwipeRefresh(
+                    state = swipeRefreshState,
+                    onRefresh = {
+                        val combinedList = (newsList + articleList).toMutableList()
+                        combinedList.shuffle()
+                        mixedList = combinedList
+                        swipeRefreshState.isRefreshing = false
+                    }
                 ) {
-                    items(filteredList) { item ->
-                        when (item) {
-                            is NewsItem -> NewsCard(item)
-                            is ArticleItem -> ArticleCard(item)
+                    LazyColumn(
+                        state = currentScrollState,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(filteredList) { item ->
+                            when (item) {
+                                is NewsItem -> NewsCard(item)
+                                is ArticleItem -> ArticleCard(item)
+                            }
                         }
                     }
                 }
             }
         }
     }
-}}
+}
+
 @Composable
-fun TabRowExample(onTabSelected: (Int) -> Unit) {
-    var selectedTabIndex by remember { mutableStateOf(0) }
+fun TabRowExample(selectedTabIndex: Int, onTabSelected: (Int) -> Unit) {
     val tabs = listOf("전체", "경제", "IT", "사회", "문화", "글로벌")
 
     TabRow(
@@ -239,10 +284,9 @@ fun TabRowExample(onTabSelected: (Int) -> Unit) {
             Tab(
                 selected = selectedTabIndex == index,
                 onClick = {
-                    selectedTabIndex = index
                     onTabSelected(index) // 탭이 선택될 때 필터링 함수 호출
                 },
-                text = { Text(tab, fontSize = 10.5.sp) } // 글자 크기 조정
+                text = { Text(tab, style = MaterialTheme.typography.titleMedium) } // 글자 크기 조정
             )
         }
     }
