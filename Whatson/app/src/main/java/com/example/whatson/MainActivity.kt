@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.BasicTextField
@@ -40,6 +41,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import androidx.navigation.compose.rememberNavController
 import com.example.whatson.ui.theme.WhatsOnTheme
 import com.example.whatson.util.ArticleItem
@@ -152,35 +155,45 @@ fun MainScreen() {
     val navController = rememberNavController()
     var newsList by remember { mutableStateOf(listOf<NewsItem>()) }
     var articleList by remember { mutableStateOf(listOf<ArticleItem>()) }
-    var mixedList by remember { mutableStateOf(listOf<Any>())}
+    var mixedList by remember { mutableStateOf(listOf<Any>()) }
+    var initialMixedList by remember { mutableStateOf(listOf<Any>()) }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     var selectedTabIndex by remember { mutableStateOf(0) }
+    var swipeRefreshState = rememberSwipeRefreshState(isRefreshing = false)
+
+    // 각 탭의 스크롤 상태를 저장하는 맵
+    val scrollStates = remember { mutableMapOf<Int, LazyListState>() }
+    var currentScrollState by remember { mutableStateOf(LazyListState()) }
 
     LaunchedEffect(Unit) {
         // assets에서 뉴스 데이터 불러오기
-
-        /*val loadedNews = fetchNewsFromUrl()
-        newsList = loadedNews*/
+        val loadedNews = fetchNewsFromUrl()
+        newsList = loadedNews
 
         // Firebase에서 기사 데이터 가져오기
         val articles = fetchArticlesFromUrl()
         articleList = articles
 
         // 리스트 합치고 섞기
-        val combinedList = (articleList).toMutableList()
+        val combinedList = (newsList + articleList).toMutableList()
         combinedList.shuffle()
         mixedList = combinedList
+        initialMixedList = combinedList
+
+        // 초기 스크롤 상태 저장
+        scrollStates[0] = currentScrollState
     }
     fun filterListByTab(index: Int) {
         val filteredList = when (index) {
-            1 -> newsList.filter { it.category == "economy" } + articleList
-            2 -> newsList.filter { it.category == "IT" } + articleList
-            3 -> newsList.filter { it.category == "society" } + articleList
-            4 -> newsList.filter { it.category == "culture" } + articleList
-            5 -> newsList.filter { it.category == "global" } + articleList
+            0 -> initialMixedList
+            1 -> newsList.filter { it.category == "economy" }
+            2 -> newsList.filter { it.category == "IT" }
+            3 -> newsList.filter { it.category == "society" }
+            4 -> newsList.filter { it.category == "culture" }
+            5 -> newsList.filter { it.category == "global" }
             else -> newsList + articleList
         }
-        mixedList = filteredList.shuffled() // 필터링된 리스트를 섞어서 mixedList에 할당
+        mixedList = filteredList // 필터링된 리스트를 섞지 않고 mixedList에 할당
     }
 
     Scaffold(
@@ -194,13 +207,23 @@ fun MainScreen() {
         }
         Box(modifier = Modifier.padding(innerPadding)) {
             Column() {
-                if (topBarVisible){
+                if (topBarVisible) {
                     SearchBar(searchQuery) { searchQuery = it }
                     Spacer(modifier = Modifier.height(8.dp))
                 }
-                TabRowExample { index ->
+                TabRowExample(selectedTabIndex) { index ->
+                    // 현재 탭의 스크롤 상태 저장
+                    scrollStates[selectedTabIndex] = currentScrollState
+
                     selectedTabIndex = index
                     filterListByTab(index)
+
+                    // 새 탭의 스크롤 상태 로드 (없으면 최상단으로)
+                    currentScrollState =
+                        scrollStates.getOrElse(selectedTabIndex) { LazyListState() }
+                    if (scrollStates[selectedTabIndex] == null) {
+                        scrollStates[selectedTabIndex] = LazyListState()
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -208,30 +231,49 @@ fun MainScreen() {
                 val trimmedQuery = searchQuery.text.trim() // 검색어의 앞뒤 공백을 제거
                 val filteredList = mixedList.filter { item ->
                     when (item) {
-                        is NewsItem -> item.title.contains(trimmedQuery, ignoreCase = true) || // 항목이 NewsItem 타입이면, 제목이 공백이 제거된 검색어를 포함하는지 확인 (대소문자 구분 없음)
+                        is NewsItem -> item.title.contains(
+                            trimmedQuery,
+                            ignoreCase = true
+                        ) || // 항목이 NewsItem 타입이면, 제목이 공백이 제거된 검색어를 포함하는지 확인 (대소문자 구분 없음)
                                 item.description.contains(trimmedQuery, ignoreCase = true)
-                        is ArticleItem -> item.title.contains(trimmedQuery, ignoreCase = true) || // 항목이 ArticleItem 타입이면, 제목이 공백이 제거된 검색어를 포함하는지 확인 (대소문자 구분 없음)
+
+                        is ArticleItem -> item.title.contains(
+                            trimmedQuery,
+                            ignoreCase = true
+                        ) || // 항목이 ArticleItem 타입이면, 제목이 공백이 제거된 검색어를 포함하는지 확인 (대소문자 구분 없음)
                                 item.description.contains(trimmedQuery, ignoreCase = true)
+
                         else -> false // 다른 타입이면, 필터링된 리스트에 포함시키지 않음
                     }
                 }
-                LazyColumn(
-                    state = scrollState,
-                    modifier = Modifier.fillMaxSize()
+                SwipeRefresh(
+                    state = swipeRefreshState,
+                    onRefresh = {
+                        val combinedList = (newsList + articleList).toMutableList()
+                        combinedList.shuffle()
+                        mixedList = combinedList
+                        swipeRefreshState.isRefreshing = false
+                    }
                 ) {
-                    items(filteredList) { item ->
-                        when (item) {
-                            is NewsItem -> NewsCard(item)
-                            is ArticleItem -> ArticleCard(item)
+                    LazyColumn(
+                        state = currentScrollState,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(filteredList) { item ->
+                            when (item) {
+                                is NewsItem -> NewsCard(item)
+                                is ArticleItem -> ArticleCard(item)
+                            }
                         }
+                    }
                 }
             }
         }
     }
-}}
+}
+
 @Composable
-fun TabRowExample(onTabSelected: (Int) -> Unit) {
-    var selectedTabIndex by remember { mutableStateOf(0) }
+fun TabRowExample(selectedTabIndex: Int, onTabSelected: (Int) -> Unit) {
     val tabs = listOf("전체", "경제", "IT", "사회", "문화", "글로벌")
 
     TabRow(
@@ -242,7 +284,6 @@ fun TabRowExample(onTabSelected: (Int) -> Unit) {
             Tab(
                 selected = selectedTabIndex == index,
                 onClick = {
-                    selectedTabIndex = index
                     onTabSelected(index) // 탭이 선택될 때 필터링 함수 호출
                 },
                 text = { Text(tab, style = MaterialTheme.typography.titleMedium) } // 글자 크기 조정
