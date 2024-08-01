@@ -30,8 +30,8 @@ private val DarkColorPalette = darkColorScheme(
 )
 
 private val LightColorPalette = lightColorScheme(
-    primary = Color(0xFF01439C),
-    onPrimary = Color.White,
+    primary = Color(0xFF000000),
+    onPrimary = Color(0xFFFFFFFF),
     primaryContainer = Color(0xFF319CCD),
     onPrimaryContainer = Color.Black,
     secondary = Color(0xFF58B0D5),
@@ -40,7 +40,7 @@ private val LightColorPalette = lightColorScheme(
     onSecondaryContainer = Color.Black,
     background = Color(0xFFFFFFFF),
     onBackground = Color.Black,
-    surface = Color(0xFFF2EBE2),
+    surface = Color(0xFFFFFFFF),
     onSurface = Color.Black
 )
 
@@ -76,11 +76,11 @@ private val AppTypography = Typography(
     headlineMedium = TextStyle(
         fontFamily = AppleSDGothicNeo1,
         fontWeight = FontWeight.Medium,
-        fontSize = 26.sp
+        fontSize = 21.sp
     ),
     headlineSmall = TextStyle(
         fontFamily = AppleSDGothicNeo,
-        fontWeight = FontWeight.Normal,
+        fontWeight = FontWeight.Medium,
         fontSize = 24.sp
     ),
     titleLarge = TextStyle(
@@ -91,7 +91,7 @@ private val AppTypography = Typography(
     titleMedium = TextStyle(
         fontFamily = AppleSDGothicNeo1,
         fontWeight = FontWeight.Medium,
-        fontSize = 16.sp
+        fontSize = 13.sp
     ),
     titleSmall = TextStyle(
         fontFamily = AppleSDGothicNeo1 ,
@@ -105,8 +105,8 @@ private val AppTypography = Typography(
     ),
     bodyMedium = TextStyle(
         fontFamily = AppleSDGothicNeo,
-        fontWeight = FontWeight.Normal,
-        fontSize = 14.sp
+        fontWeight = FontWeight.Bold,
+        fontSize = 12.sp
     ),
     bodySmall = TextStyle(
         fontFamily = AppleSDGothicNeo,
