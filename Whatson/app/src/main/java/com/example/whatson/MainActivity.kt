@@ -167,15 +167,15 @@ fun MainScreen() {
 
     LaunchedEffect(Unit) {
         // assets에서 뉴스 데이터 불러오기
-        val loadedNews = fetchNewsFromUrl()
-        newsList = loadedNews
+       /* val loadedNews = fetchNewsFromUrl()
+        newsList = loadedNews*/
 
         // Firebase에서 기사 데이터 가져오기
         val articles = fetchArticlesFromUrl()
         articleList = articles
 
         // 리스트 합치고 섞기
-        val combinedList = (newsList + articleList).toMutableList()
+        val combinedList = (articleList).toMutableList()
         combinedList.shuffle()
         mixedList = combinedList
         initialMixedList = combinedList

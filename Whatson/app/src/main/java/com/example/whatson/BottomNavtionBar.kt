@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
@@ -22,6 +23,7 @@ import androidx.compose.material.icons.filled.Settings
 sealed class BottomNavItem(var title: String, var icon: ImageVector, var route: String) {
     object Home : BottomNavItem("홈", Icons.Default.Home, "home")
     object Favorite : BottomNavItem("스크랩", Icons.Default.Favorite, "favorite")
+    object Post : BottomNavItem("글 작성", Icons.Default.Create, "Post")
     object Settings : BottomNavItem("셋팅", Icons.Default.Settings, "settings")
 }
 
@@ -32,6 +34,7 @@ fun BottomNavigationBar(navController: NavHostController) {
     val items = listOf(
         BottomNavItem.Home,
         BottomNavItem.Favorite,
+        BottomNavItem.Post,
         BottomNavItem.Settings
     )
     val colors = MaterialTheme.colorScheme
@@ -59,6 +62,11 @@ fun BottomNavigationBar(navController: NavHostController) {
                         BottomNavItem.Favorite.route -> {
                             // LikeScreenActivity로 이동
                             val intent = Intent(context, LikeScreenActivity::class.java)
+                            context.startActivity(intent)
+                        }
+                        BottomNavItem.Post.route -> {
+                            // WritePostActivity로 이동
+                            val intent = Intent(context, WritePostActivity::class.java)
                             context.startActivity(intent)
                         }
                         BottomNavItem.Settings.route -> {

@@ -66,13 +66,14 @@ fun NewsCard(newsItem: NewsItem) {
     ) {
         Column(
             modifier = Modifier
-                .background(Color.LightGray)
+                .background(Color.White)
                 .padding(16.dp)
         ) {
             Text(
                 text = newsItem.title,
                 style = MaterialTheme.typography.headlineMedium
             )
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = newsItem.description,
                 style = MaterialTheme.typography.bodyLarge
@@ -94,6 +95,13 @@ fun NewsCard(newsItem: NewsItem) {
                         isFavorite = !isFavorite
                     },
                 tint = if (isFavorite) Color.Red else Color.Gray
+
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Divider(
+                color = Color.LightGray.copy(alpha = 0.6f),
+                thickness = 1.dp,
+                modifier = Modifier.padding(bottom = 8.dp)
             )
         }
     }
@@ -163,10 +171,6 @@ fun ArticleCard(articleItem: ArticleItem) {
                     style = MaterialTheme.typography.headlineMedium
                 )
 
-               /* Text(
-                    text = articleItem.description,
-                    style = MaterialTheme.typography.bodyLarge
-                )*/
                Row {
                    Text(text = articleItem.date,
                        style = MaterialTheme.typography.bodySmall,

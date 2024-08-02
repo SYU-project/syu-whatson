@@ -81,7 +81,7 @@ private val AppTypography = Typography(
     headlineSmall = TextStyle(
         fontFamily = AppleSDGothicNeo,
         fontWeight = FontWeight.Medium,
-        fontSize = 24.sp
+        fontSize = 19.sp
     ),
     titleLarge = TextStyle(
         fontFamily = AppleSDGothicNeo1,
@@ -105,8 +105,8 @@ private val AppTypography = Typography(
     ),
     bodyMedium = TextStyle(
         fontFamily = AppleSDGothicNeo,
-        fontWeight = FontWeight.Bold,
-        fontSize = 12.sp
+        fontWeight = FontWeight.ExtraBold,
+        fontSize = 14.sp
     ),
     bodySmall = TextStyle(
         fontFamily = AppleSDGothicNeo,
