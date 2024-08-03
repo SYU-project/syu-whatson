@@ -251,8 +251,8 @@ fun MainScreen() {
                         modifier = Modifier
                             .fillMaxSize()
                             .nestedScroll(remember {
-                                object : androidx.compose.ui.input.nestedscroll.NestedScrollConnection {
-                                    override fun onPreScroll(available: androidx.compose.ui.geometry.Offset, source: androidx.compose.ui.input.nestedscroll.NestedScrollSource): androidx.compose.ui.geometry.Offset {
+                                object : NestedScrollConnection {
+                                    override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                                         val currentScrollPosition = currentScrollState.firstVisibleItemScrollOffset
                                         isTopBarVisible = previousScrollPosition >= currentScrollPosition
                                         previousScrollPosition = currentScrollPosition
