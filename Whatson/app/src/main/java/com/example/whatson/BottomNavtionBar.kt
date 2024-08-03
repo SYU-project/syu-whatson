@@ -53,28 +53,15 @@ fun BottomNavigationBar(navController: NavHostController) {
                 label = { Text(item.title) },
                 selected = currentRoute == item.route,
                 onClick = {
-                    when (item.route) {
-                        BottomNavItem.Home.route -> {
-                            // Home 화면으로 이동
-                            val intent = Intent(context, MainActivity::class.java)
-                            context.startActivity(intent)
-                        }
-                        BottomNavItem.Favorite.route -> {
-                            // LikeScreenActivity로 이동
-                            val intent = Intent(context, LikeScreenActivity::class.java)
-                            context.startActivity(intent)
-                        }
-                        BottomNavItem.Post.route -> {
-                            // WritePostActivity로 이동
-                            val intent = Intent(context, WritePostActivity::class.java)
-                            context.startActivity(intent)
-                        }
-                        BottomNavItem.Settings.route -> {
-                            // SettingsActivity로 이동
-                            val intent = Intent(context, SettingsActivity::class.java)
-                            context.startActivity(intent)
-                        }
+                    val intent = when (item.route) {
+                        BottomNavItem.Home.route -> Intent(context, MainActivity::class.java)
+                        BottomNavItem.Favorite.route -> Intent(context, LikeScreenActivity::class.java)
+                        BottomNavItem.Post.route -> Intent(context, WritePostActivity::class.java)
+                        BottomNavItem.Settings.route -> Intent(context, SettingsActivity::class.java)
+                        else -> return@BottomNavigationItem
                     }
+                    intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)//새로고침 없이 화면전환
+                    context.startActivity(intent)
                 }
             )
         }

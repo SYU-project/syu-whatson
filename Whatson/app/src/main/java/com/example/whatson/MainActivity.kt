@@ -153,11 +153,9 @@ fun MainScreen() {
     val scrollStates = remember { mutableMapOf<Int, LazyListState>() }
     var currentScrollState by remember { mutableStateOf(LazyListState()) }
 
-    // Add a variable to track whether the TopBar and TabRow should be visible
+    //스크롤 동작 조절(nestedScroll)
     var isTopBarVisible by remember { mutableStateOf(true) }
-
-    // Track the previous scroll position to determine the scroll direction
-    var previousScrollPosition by remember { mutableStateOf(0) }
+    var previousScrollPosition by remember { mutableStateOf(0) }  // 이전 상태
 
     LaunchedEffect(Unit) {
         // assets에서 뉴스 데이터 불러오기
@@ -196,7 +194,7 @@ fun MainScreen() {
                 TopBar(searchQuery) { searchQuery = it }
             }
         },
-        bottomBar = { BottomNavigationBar(navController) }
+        bottomBar = { BottomNavigationBar(navController = navController) }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             Column() {
@@ -269,6 +267,7 @@ fun MainScreen() {
                         }
                     }
                 }
+
             }
         }
     }

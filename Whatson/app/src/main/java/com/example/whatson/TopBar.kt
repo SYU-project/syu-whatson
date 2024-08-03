@@ -12,6 +12,7 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -48,7 +49,7 @@ fun TopBar(searchQuery: TextFieldValue, onSearchQueryChange: (TextFieldValue) ->
                     onValueChange = onSearchQueryChange,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.Transparent),
+                        .background(Color.Transparent), // 배경 : 투명(흰색)
                     decorationBox = { innerTextField ->
                         Box(
                             modifier = Modifier
@@ -73,7 +74,11 @@ fun TopBar(searchQuery: TextFieldValue, onSearchQueryChange: (TextFieldValue) ->
                 isSearchMode = !isSearchMode
                 if (!isSearchMode) onSearchQueryChange(TextFieldValue(""))
             }) {
-                Icon(imageVector = Icons.Default.Search, contentDescription = "Search Icon")
+                Icon(
+                   /* Icon(imageVector = Icons.Default.Search, contentDescription = "Search Icon")*/
+                    imageVector = if (!isSearchMode) Icons.AutoMirrored.Filled.ArrowBack else Icons.Default.Search, // 검색 모드에 따른 아이콘 변경이 필요한가..??
+                    contentDescription = if (isSearchMode) "Back" else "검색"
+                )
             }
         },
         backgroundColor = MaterialTheme.colorScheme.background
