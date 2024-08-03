@@ -75,8 +75,8 @@ fun TopBar(searchQuery: TextFieldValue, onSearchQueryChange: (TextFieldValue) ->
                 if (!isSearchMode) onSearchQueryChange(TextFieldValue(""))
             }) {
                 Icon(
-                   /* Icon(imageVector = Icons.Default.Search, contentDescription = "Search Icon")*/
-                    imageVector = if (!isSearchMode) Icons.AutoMirrored.Filled.ArrowBack else Icons.Default.Search, // 검색 모드에 따른 아이콘 변경이 필요한가..??
+                    /*imageVector = if (!isSearchMode) Icons.Default.Search else Icons.AutoMirrored.Filled.ArrowBack,*/
+                    imageVector = Icons.Default.Search , // 검색 모드에 따른 아이콘 변경이 필요한가?
                     contentDescription = if (isSearchMode) "Back" else "검색"
                 )
             }
