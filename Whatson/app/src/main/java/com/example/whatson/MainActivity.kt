@@ -7,52 +7,40 @@ import android.view.View
 import android.view.WindowInsetsController
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import androidx.navigation.compose.rememberNavController
 import com.example.whatson.ui.theme.WhatsOnTheme
 import com.example.whatson.util.ArticleItem
 import com.example.whatson.util.NewsItem
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -127,24 +115,24 @@ suspend fun fetchNewsFromUrl(): List<NewsItem> {
         connection.requestMethod = "GET" // GET 요청 설정
 
         if (connection.responseCode == HttpURLConnection.HTTP_OK) {
-                // 응답이 성공적인 경우
-                val jsonString = connection.inputStream.bufferedReader().use { it.readText() } // 응답을 문자열로 읽기
-                val gson = Gson() // Gson 객체 생성
-                val listType = object : TypeToken<List<Map<String, String>>>() {}.type // JSON 타입 정의
-                val newsList: List<Map<String, String>> = gson.fromJson(jsonString, listType) // JSON 파싱
+            // 응답이 성공적인 경우
+            val jsonString = connection.inputStream.bufferedReader().use { it.readText() } // 응답을 문자열로 읽기
+            val gson = Gson() // Gson 객체 생성
+            val listType = object : TypeToken<List<Map<String, String>>>() {}.type // JSON 타입 정의
+            val newsList: List<Map<String, String>> = gson.fromJson(jsonString, listType) // JSON 파싱
 
-                // JSON 데이터를 NewsItem 객체로 변환
-                val newsItems = newsList.map { article ->
-                    val category = article["category"] ?: "" // 카테고리 추출
-                    val title = article["title"] ?: "" // 제목 추출
-                    val description = article["summary"] ?: "" // 요약 추출
-                    NewsItem(category, title, description) // NewsItem 객체 생성
+            // JSON 데이터를 NewsItem 객체로 변환
+            val newsItems = newsList.map { article ->
+                val category = article["category"] ?: "" // 카테고리 추출
+                val title = article["title"] ?: "" // 제목 추출
+                val description = article["summary"] ?: "" // 요약 추출
+                NewsItem(category, title, description) // NewsItem 객체 생성
 
-                }
+            }
             // 파싱된 결과를 로그에 출력
-                Log.d("NewsData", newsItems.toString())
+            Log.d("NewsData", newsItems.toString())
 
-                newsItems// 결과 반환
+            newsItems// 결과 반환
         } else {
             emptyList() // 응답이 실패한 경우 빈 리스트 반환
         }
@@ -165,9 +153,15 @@ fun MainScreen() {
     val scrollStates = remember { mutableMapOf<Int, LazyListState>() }
     var currentScrollState by remember { mutableStateOf(LazyListState()) }
 
+    // Add a variable to track whether the TopBar and TabRow should be visible
+    var isTopBarVisible by remember { mutableStateOf(true) }
+
+    // Track the previous scroll position to determine the scroll direction
+    var previousScrollPosition by remember { mutableStateOf(0) }
+
     LaunchedEffect(Unit) {
         // assets에서 뉴스 데이터 불러오기
-       /* val loadedNews = fetchNewsFromUrl()
+        /* val loadedNews = fetchNewsFromUrl()
         newsList = loadedNews*/
 
         // Firebase에서 기사 데이터 가져오기
@@ -197,32 +191,29 @@ fun MainScreen() {
     }
 
     Scaffold(
+        topBar = {
+            AnimatedVisibility(visible = isTopBarVisible) {
+                TopBar(searchQuery) { searchQuery = it }
+            }
+        },
         bottomBar = { BottomNavigationBar(navController) }
     ) { innerPadding ->
-        val scrollState = rememberLazyListState()
-        val topBarVisible by remember {
-            derivedStateOf {
-                scrollState.firstVisibleItemScrollOffset == 0//스크롤을 화면 최상단으로 올렸을때 search창이 뜸(수정 예정)
-            }
-        }
         Box(modifier = Modifier.padding(innerPadding)) {
             Column() {
-                if (topBarVisible) {
-                    SearchBar(searchQuery) { searchQuery = it }
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-                TabRowExample(selectedTabIndex) { index ->
-                    // 현재 탭의 스크롤 상태 저장
-                    scrollStates[selectedTabIndex] = currentScrollState
+                AnimatedVisibility(visible = isTopBarVisible) {
+                    TabRowExample(selectedTabIndex) { index ->
+                        // 현재 탭의 스크롤 상태 저장
+                        scrollStates[selectedTabIndex] = currentScrollState
 
-                    selectedTabIndex = index
-                    filterListByTab(index)
+                        selectedTabIndex = index
+                        filterListByTab(index)
 
-                    // 새 탭의 스크롤 상태 로드 (없으면 최상단으로)
-                    currentScrollState =
-                        scrollStates.getOrElse(selectedTabIndex) { LazyListState() }
-                    if (scrollStates[selectedTabIndex] == null) {
-                        scrollStates[selectedTabIndex] = LazyListState()
+                        // 새 탭의 스크롤 상태 로드 (없으면 최상단으로)
+                        currentScrollState =
+                            scrollStates.getOrElse(selectedTabIndex) { LazyListState() }
+                        if (scrollStates[selectedTabIndex] == null) {
+                            scrollStates[selectedTabIndex] = LazyListState()
+                        }
                     }
                 }
 
@@ -257,7 +248,18 @@ fun MainScreen() {
                 ) {
                     LazyColumn(
                         state = currentScrollState,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .nestedScroll(remember {
+                                object : androidx.compose.ui.input.nestedscroll.NestedScrollConnection {
+                                    override fun onPreScroll(available: androidx.compose.ui.geometry.Offset, source: androidx.compose.ui.input.nestedscroll.NestedScrollSource): androidx.compose.ui.geometry.Offset {
+                                        val currentScrollPosition = currentScrollState.firstVisibleItemScrollOffset
+                                        isTopBarVisible = previousScrollPosition >= currentScrollPosition
+                                        previousScrollPosition = currentScrollPosition
+                                        return super.onPreScroll(available, source)
+                                    }
+                                }
+                            })
                     ) {
                         items(filteredList) { item ->
                             when (item) {
@@ -289,43 +291,5 @@ fun TabRowExample(selectedTabIndex: Int, onTabSelected: (Int) -> Unit) {
                 text = { Text(tab, style = MaterialTheme.typography.titleMedium) } // 글자 크기 조정
             )
         }
-    }
-}
-@Composable
-fun SearchBar(query: TextFieldValue, onQueryChange: (TextFieldValue) -> Unit) {
-    val background: Painter = painterResource(id = R.drawable.component_9)
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp) // Add padding around the box if needed
-    ) {
-        Image(
-            painter = background,
-            contentDescription = null,
-            modifier = Modifier.fillMaxWidth()
-        )
-        BasicTextField(
-            value = query,
-            onValueChange = onQueryChange,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp), // Adjust padding inside the text field if needed
-            decorationBox = { innerTextField ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
-                    if (query.text.isEmpty()) {
-                        Text(
-                            text = "검색",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                        )
-                    }
-                    innerTextField()
-                }
-            }
-        )
     }
 }
