@@ -149,32 +149,24 @@ fun MainScreen() {
     var selectedTabIndex by remember { mutableStateOf(0) }
     var swipeRefreshState = rememberSwipeRefreshState(isRefreshing = false)
 
-    // 각 탭의 스크롤 상태를 저장하는 맵
     val scrollStates = remember { mutableMapOf<Int, LazyListState>() }
     var currentScrollState by remember { mutableStateOf(LazyListState()) }
 
-    //스크롤 동작 조절(nestedScroll)
     var isTopBarVisible by remember { mutableStateOf(true) }
-    var previousScrollPosition by remember { mutableStateOf(0) }  // 이전 상태
+    var previousScrollPosition by remember { mutableStateOf(0) }
 
     LaunchedEffect(Unit) {
-        // assets에서 뉴스 데이터 불러오기
-        /* val loadedNews = fetchNewsFromUrl()
-        newsList = loadedNews*/
-
-        // Firebase에서 기사 데이터 가져오기
         val articles = fetchArticlesFromUrl()
         articleList = articles
 
-        // 리스트 합치고 섞기
         val combinedList = (articleList).toMutableList()
         combinedList.shuffle()
         mixedList = combinedList
         initialMixedList = combinedList
 
-        // 초기 스크롤 상태 저장
         scrollStates[0] = currentScrollState
     }
+
     fun filterListByTab(index: Int) {
         val filteredList = when (index) {
             0 -> initialMixedList
@@ -185,7 +177,7 @@ fun MainScreen() {
             5 -> newsList.filter { it.category == "global" }
             else -> newsList + articleList
         }
-        mixedList = filteredList // 필터링된 리스트를 섞지 않고 mixedList에 할당
+        mixedList = filteredList
     }
 
     Scaffold(
@@ -194,21 +186,21 @@ fun MainScreen() {
                 TopBar(searchQuery) { searchQuery = it }
             }
         },
-        bottomBar = { BottomNavigationBar(navController = navController) }
+        bottomBar = {
+            BottomNavigationBar(navController = navController, onHomeClick = {
+                currentScrollState = LazyListState(0, 0) // Reset scroll state to top
+                scrollStates[selectedTabIndex] = currentScrollState // Update the scroll state
+            })
+        }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            Column() {
+            Column {
                 AnimatedVisibility(visible = isTopBarVisible) {
                     TabRowExample(selectedTabIndex) { index ->
-                        // 현재 탭의 스크롤 상태 저장
                         scrollStates[selectedTabIndex] = currentScrollState
-
                         selectedTabIndex = index
                         filterListByTab(index)
-
-                        // 새 탭의 스크롤 상태 로드 (없으면 최상단으로)
-                        currentScrollState =
-                            scrollStates.getOrElse(selectedTabIndex) { LazyListState() }
+                        currentScrollState = scrollStates.getOrElse(selectedTabIndex) { LazyListState() }
                         if (scrollStates[selectedTabIndex] == null) {
                             scrollStates[selectedTabIndex] = LazyListState()
                         }
@@ -217,24 +209,17 @@ fun MainScreen() {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                val trimmedQuery = searchQuery.text.trim() // 검색어의 앞뒤 공백을 제거
+                val trimmedQuery = searchQuery.text.trim()
                 val filteredList = mixedList.filter { item ->
                     when (item) {
-                        is NewsItem -> item.title.contains(
-                            trimmedQuery,
-                            ignoreCase = true
-                        ) || // 항목이 NewsItem 타입이면, 제목이 공백이 제거된 검색어를 포함하는지 확인 (대소문자 구분 없음)
+                        is NewsItem -> item.title.contains(trimmedQuery, ignoreCase = true) ||
                                 item.description.contains(trimmedQuery, ignoreCase = true)
-
-                        is ArticleItem -> item.title.contains(
-                            trimmedQuery,
-                            ignoreCase = true
-                        ) || // 항목이 ArticleItem 타입이면, 제목이 공백이 제거된 검색어를 포함하는지 확인 (대소문자 구분 없음)
+                        is ArticleItem -> item.title.contains(trimmedQuery, ignoreCase = true) ||
                                 item.description.contains(trimmedQuery, ignoreCase = true)
-
-                        else -> false // 다른 타입이면, 필터링된 리스트에 포함시키지 않음
+                        else -> false
                     }
                 }
+
                 SwipeRefresh(
                     state = swipeRefreshState,
                     onRefresh = {
@@ -267,7 +252,6 @@ fun MainScreen() {
                         }
                     }
                 }
-
             }
         }
     }

@@ -99,7 +99,10 @@ fun WritePostScreen() {
                 }
             )
         },
-        bottomBar = { BottomNavigationBar(navController) }
+        bottomBar = {
+            BottomNavigationBar(navController = navController)
+        }
+
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             WritePostForm(coroutineScope)

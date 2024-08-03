@@ -71,7 +71,10 @@ class ArticleDetailViewActivity : ComponentActivity() {
 fun DetailScreen(articleItem: ArticleItem?) {
     val navController = rememberNavController()
     Scaffold(
-        bottomBar = { BottomNavigationBar(navController) }
+        bottomBar = {
+            BottomNavigationBar(navController = navController)
+        }
+
     ) {
         Column(
             modifier = Modifier

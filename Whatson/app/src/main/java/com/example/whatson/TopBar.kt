@@ -74,13 +74,18 @@ fun TopBar(searchQuery: TextFieldValue, onSearchQueryChange: (TextFieldValue) ->
                 isSearchMode = !isSearchMode
                 if (!isSearchMode) onSearchQueryChange(TextFieldValue(""))
             }) {
-                Icon(
-                    /*imageVector = if (!isSearchMode) Icons.Default.Search else Icons.AutoMirrored.Filled.ArrowBack,*/
-                    imageVector = Icons.Default.Search , // 검색 모드에 따른 아이콘 변경이 필요한가?
-                    contentDescription = if (isSearchMode) "Back" else "검색"
-                )
+                if (!isSearchMode) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "검색"
+                    )
+                } else {
+                    Text(
+                        text = "취소",
+                        color = MaterialTheme.colorScheme.onBackground // 적절한 색상 설정
+                    )
+                }
             }
         },
         backgroundColor = MaterialTheme.colorScheme.background
-    )
-}
+    )}

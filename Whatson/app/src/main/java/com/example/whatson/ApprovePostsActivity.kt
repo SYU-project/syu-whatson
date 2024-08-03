@@ -82,6 +82,8 @@ fun ApprovePostsScreen(context: Context) {
     val SetApprovePostsStatusBarColor = if (isLoading) Color.Gray else MaterialTheme.colorScheme.background
     SetApprovePostsStatusBarColor(view, SetApprovePostsStatusBarColor)
 
+    val navController = rememberNavController()
+
     LaunchedEffect(Unit) {
         try {
             val posts = fetchArticlesFromApproveUrl()
@@ -100,7 +102,7 @@ fun ApprovePostsScreen(context: Context) {
             )
         },
         bottomBar = {
-            BottomNavigationBar(navController = rememberNavController())
+            BottomNavigationBar(navController = navController, onHomeClick = {})
         },
         floatingActionButton = {
             FloatingActionButton(

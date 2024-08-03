@@ -54,6 +54,7 @@ fun PasswordEntryScreen(onPasswordEntered: (String) -> Unit) {
     val darkTheme = isSystemInDarkTheme()
     val statusBarColor = if (darkTheme) Color.Black else Color.White
     val view = LocalView.current
+    val navController = rememberNavController()
 
     // 상태바 색상 설정
     SetPasswordEntryStatusBarColor(view, statusBarColor)
@@ -67,8 +68,9 @@ fun PasswordEntryScreen(onPasswordEntered: (String) -> Unit) {
             )
         },
         bottomBar = {
-            BottomNavigationBar(navController = rememberNavController())
+            BottomNavigationBar(navController = navController, onHomeClick = {})
         }
+
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
             Column(
