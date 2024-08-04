@@ -53,6 +53,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
+import androidx.compose.runtime.*
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.livedata.observeAsState
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,82 +84,14 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-suspend fun fetchArticlesFromUrl(): List<ArticleItem> {
-    // JSON 파일 URL
-    val urlString = "https://firebasestorage.googleapis.com/v0/b/whatson-93370.appspot.com/o/article%2Farticle.json?alt=media&token=70e0c119-e396-4a3d-998f-a1db85e77c21"
 
-    return withContext(Dispatchers.IO) {
-        val url = URL(urlString) // URL 객체 생성
-        val connection = url.openConnection() as HttpURLConnection // HTTP 연결 열기
-        connection.requestMethod = "GET" // GET 요청 설정
-
-        if (connection.responseCode == HttpURLConnection.HTTP_OK) {
-            // 응답이 성공적인 경우
-            val jsonString = connection.inputStream.bufferedReader().use { it.readText() } // 응답을 문자열로 읽기
-            val gson = Gson() // Gson 객체 생성
-            val mapType = object : TypeToken<Map<String, List<Map<String, Any>>>>() {}.type // JSON 타입 정의
-            val articlesMap: Map<String, List<Map<String, Any>>> = gson.fromJson(jsonString, mapType) // JSON 파싱
-            val articleItems = mutableListOf<ArticleItem>()
-            for (category in articlesMap.keys) {
-                val articles = articlesMap[category] ?: continue
-                for (article in articles) {
-                    val title = article["Title"] as? String ?: "" // 제목 추출
-                    val description = article["Content"] as? String ?: "" // 내용 추출
-                    val imageUrl = (article["imageurl"] as? List<String>) ?: listOf() // 이미지 URL 리스트 추출
-                    val writer = article["writer"] as? String ?:""// 글쓴이 추출
-                    val date = article ["date"] as? String ?:"날짜미정" //날짜 추출
-                    articleItems.add(ArticleItem(title, description, imageUrl,writer,date)) // ArticleItem 객체 생성 및 리스트에 추가
-                }
-            }
-            // JSON 파싱 결과를 로그에 출력
-            Log.d("ArticleData", articleItems.toString())
-
-            articleItems // 결과 반환
-        } else {
-            emptyList() // 응답이 실패한 경우 빈 리스트 반환
-        }
-    }
-}
-//아직 서버 안열려서 안해놓음
-suspend fun fetchNewsFromUrl(): List<NewsItem> {
-    val urlString = "http://210.109.52.162:5000/summaries"
-
-    return withContext(Dispatchers.IO) {
-        val url = URL(urlString) // URL 객체 생성
-        val connection = url.openConnection() as HttpURLConnection // HTTP 연결 열기
-        connection.requestMethod = "GET" // GET 요청 설정
-
-        if (connection.responseCode == HttpURLConnection.HTTP_OK) {
-                // 응답이 성공적인 경우
-                val jsonString = connection.inputStream.bufferedReader().use { it.readText() } // 응답을 문자열로 읽기
-                val gson = Gson() // Gson 객체 생성
-                val listType = object : TypeToken<List<Map<String, String>>>() {}.type // JSON 타입 정의
-                val newsList: List<Map<String, String>> = gson.fromJson(jsonString, listType) // JSON 파싱
-
-                // JSON 데이터를 NewsItem 객체로 변환
-                val newsItems = newsList.map { article ->
-                    val category = article["category"] ?: "" // 카테고리 추출
-                    val title = article["title"] ?: "" // 제목 추출
-                    val description = article["summary"] ?: "" // 요약 추출
-                    NewsItem(category, title, description) // NewsItem 객체 생성
-
-                }
-            // 파싱된 결과를 로그에 출력
-                Log.d("NewsData", newsItems.toString())
-
-                newsItems// 결과 반환
-        } else {
-            emptyList() // 응답이 실패한 경우 빈 리스트 반환
-        }
-    }
-}
 @Composable
-fun MainScreen() {
+fun MainScreen(viewModel: MainViewModel = viewModel()) {
     val navController = rememberNavController()
-    var newsList by remember { mutableStateOf(listOf<NewsItem>()) }
-    var articleList by remember { mutableStateOf(listOf<ArticleItem>()) }
-    var mixedList by remember { mutableStateOf(listOf<Any>()) }
-    var initialMixedList by remember { mutableStateOf(listOf<Any>()) }
+
+    val newsList by viewModel.newsList.observeAsState(emptyList())
+    val articleList by viewModel.articleList.observeAsState(emptyList())
+    var mixedList by remember { mutableStateOf(viewModel.mixedList) }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     var selectedTabIndex by remember { mutableStateOf(0) }
     var swipeRefreshState = rememberSwipeRefreshState(isRefreshing = false)
@@ -165,27 +100,14 @@ fun MainScreen() {
     val scrollStates = remember { mutableMapOf<Int, LazyListState>() }
     var currentScrollState by remember { mutableStateOf(LazyListState()) }
 
-    LaunchedEffect(Unit) {
-        // assets에서 뉴스 데이터 불러오기
-        val loadedNews = fetchNewsFromUrl()
-        newsList = loadedNews
-
-        // Firebase에서 기사 데이터 가져오기
-        val articles = fetchArticlesFromUrl()
-        articleList = articles
-
-        // 리스트 합치고 섞기
-        val combinedList = (newsList + articleList).toMutableList()
-        combinedList.shuffle()
-        mixedList = combinedList
-        initialMixedList = combinedList
-
-        // 초기 스크롤 상태 저장
-        scrollStates[0] = currentScrollState
+    // mixedList 변경 시 UI 업데이트
+    LaunchedEffect(newsList, articleList) {
+        mixedList = (newsList + articleList).toMutableList().also { it.shuffle() }
     }
+
     fun filterListByTab(index: Int) {
         val filteredList = when (index) {
-            0 -> initialMixedList
+            0 -> viewModel.mixedList
             1 -> newsList.filter { it.category == "economy" }
             2 -> newsList.filter { it.category == "IT" }
             3 -> newsList.filter { it.category == "society" }
@@ -202,11 +124,11 @@ fun MainScreen() {
         val scrollState = rememberLazyListState()
         val topBarVisible by remember {
             derivedStateOf {
-                scrollState.firstVisibleItemScrollOffset == 0//스크롤을 화면 최상단으로 올렸을때 search창이 뜸(수정 예정)
+                scrollState.firstVisibleItemScrollOffset == 0 // 스크롤을 화면 최상단으로 올렸을 때 search 창이 뜸(수정 예정)
             }
         }
         Box(modifier = Modifier.padding(innerPadding)) {
-            Column() {
+            Column {
                 if (topBarVisible) {
                     SearchBar(searchQuery) { searchQuery = it }
                     Spacer(modifier = Modifier.height(8.dp))
@@ -219,8 +141,7 @@ fun MainScreen() {
                     filterListByTab(index)
 
                     // 새 탭의 스크롤 상태 로드 (없으면 최상단으로)
-                    currentScrollState =
-                        scrollStates.getOrElse(selectedTabIndex) { LazyListState() }
+                    currentScrollState = scrollStates.getOrElse(selectedTabIndex) { LazyListState() }
                     if (scrollStates[selectedTabIndex] == null) {
                         scrollStates[selectedTabIndex] = LazyListState()
                     }
@@ -249,10 +170,8 @@ fun MainScreen() {
                 SwipeRefresh(
                     state = swipeRefreshState,
                     onRefresh = {
-                        val combinedList = (newsList + articleList).toMutableList()
-                        combinedList.shuffle()
-                        mixedList = combinedList
-                        swipeRefreshState.isRefreshing = false
+                        viewModel.refreshArticles()
+                        viewModel.refreshNews()
                     }
                 ) {
                     LazyColumn(
@@ -266,6 +185,12 @@ fun MainScreen() {
                             }
                         }
                     }
+                }
+
+                // RefreshState를 업데이트하는 코드 추가
+                LaunchedEffect(viewModel.mixedList) {
+                    swipeRefreshState.isRefreshing = false
+                    mixedList = viewModel.mixedList
                 }
             }
         }
