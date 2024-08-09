@@ -62,6 +62,18 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.launch
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
+import android.content.Context
+import java.util.UUID
+import java.io.IOException
+import java.net.SocketTimeoutException
+import java.io.BufferedReader
+import java.io.InputStreamReader
+
+
+
+
 
 class MainViewModel : ViewModel() {
     private val _newsList = MutableLiveData<List<NewsItem>>()
@@ -77,6 +89,59 @@ class MainViewModel : ViewModel() {
         loadArticles()
         loadNews()
     }
+
+    // 뉴스 조회수 서버로 전송 함수
+    suspend fun sendViewsToServer(context: Context, title: String): Int? {
+        val urlString = "http://210.109.52.162:5000/submit"
+
+        return withContext(Dispatchers.IO) {
+            try {
+                val url = URL(urlString)
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "POST"
+                connection.doOutput = true
+                connection.setRequestProperty("Content-Type", "application/json")
+
+                // 클라이언트 ID 가져오기 또는 생성
+                val sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+                var clientId = sharedPreferences.getString("client_id", null)
+                if (clientId == null) {
+                    clientId = UUID.randomUUID().toString()
+                    sharedPreferences.edit().putString("client_id", clientId).apply()
+                }
+
+                // 서버로 보낼 JSON 객체 생성
+                val jsonObject = JsonObject().apply {
+                    addProperty("client_id", clientId)
+                    add("views", JsonArray().apply {
+                        add(1) // 조회수 1 증가
+                    })
+                    addProperty("title", title) // 뉴스 또는 기사 제목
+                }
+
+                val jsonString = Gson().toJson(jsonObject)
+                connection.outputStream.use { outputStream ->
+                    outputStream.write(jsonString.toByteArray())
+                    outputStream.flush()
+                }
+
+                // 서버 응답 코드 확인 및 총 조회수 파싱
+                if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                    val response = connection.inputStream.bufferedReader().use { it.readText() }
+                    val responseJson = Gson().fromJson(response, JsonObject::class.java)
+                    responseJson.get("current_views")?.asInt
+                } else {
+                    Log.e("NetworkError", "Server returned: ${connection.responseCode}")
+                    null
+                }
+            } catch (e: Exception) {
+                Log.e("NetworkError", "Exception: ${e.message}")
+                null
+            }
+        }
+    }
+
+
 
     private fun loadArticles() {
         viewModelScope.launch {
@@ -148,30 +213,43 @@ suspend fun fetchArticlesFromUrl(): List<ArticleItem> {
     }
 }
 
+
 suspend fun fetchNewsFromUrl(): List<NewsItem> {
     val urlString = "http://210.109.52.162:5000/summaries"
 
-    return withContext(Dispatchers.IO) {
-        val url = URL(urlString)
-        val connection = url.openConnection() as HttpURLConnection
-        connection.requestMethod = "GET"
+    return try {
+        withContext(Dispatchers.IO) {
+            val url = URL(urlString)
+            val connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = "GET"
+            connection.connectTimeout = 10000
+            connection.readTimeout = 10000
+            connection.setRequestProperty("Connection", "close")
 
-        if (connection.responseCode == HttpURLConnection.HTTP_OK) {
-            val jsonString = connection.inputStream.bufferedReader().use { it.readText() }
-            val gson = Gson()
-            val listType = object : TypeToken<List<Map<String, String>>>() {}.type
-            val newsList: List<Map<String, String>> = gson.fromJson(jsonString, listType)
+            if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                val inputStream = connection.inputStream
+                val result = inputStream.buffered().use { it.readBytes() }
+                val jsonString = String(result, Charsets.UTF_8)
 
-            val newsItems = newsList.map { article ->
-                val category = article["category"] ?: ""
-                val title = article["title"] ?: ""
-                val description = article["summary"] ?: ""
-                NewsItem(category, title, description)
+                val gson = Gson()
+                val listType = object : TypeToken<List<Map<String, String>>>() {}.type
+                val newsList: List<Map<String, String>> = gson.fromJson(jsonString, listType)
+
+                val newsItems = newsList.map { article ->
+                    val category = article["category"] ?: ""
+                    val title = article["title"] ?: ""
+                    val description = article["summary"] ?: ""
+                    NewsItem(category, title, description)
+                }
+                Log.d("NewsData", newsItems.toString())
+                newsItems
+            } else {
+                Log.e("FetchNewsError", "Unexpected response code: ${connection.responseCode}")
+                emptyList()
             }
-            Log.d("NewsData", newsItems.toString())
-            newsItems
-        } else {
-            emptyList()
         }
+    } catch (e: Exception) {
+        Log.e("FetchNewsError", "IO Exception during fetching news", e)
+        emptyList()
     }
 }
