@@ -18,6 +18,7 @@
         <activity android:name=".ApprovePostsActivity" />
         <activity android:name=".PasswordEntryActivity" />
         <activity android:name=".WritePostActivity" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
