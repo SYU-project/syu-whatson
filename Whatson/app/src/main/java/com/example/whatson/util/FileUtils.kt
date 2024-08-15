@@ -36,7 +36,13 @@ data class ArticleItem(
     val writer:String,
     val date:String
 ): Serializable
-
+data class Post(
+    val title: String,
+    val content: String,
+    val imageUrls: List<String> = listOf(),
+    val writer: String,
+    val date: String
+)
 
 // Function to save favorites
 fun saveNewsFavorites(context: Context, favorites: List<NewsItem>) {

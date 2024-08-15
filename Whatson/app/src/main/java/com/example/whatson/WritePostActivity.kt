@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.whatson.ui.theme.WhatsOnTheme
+import com.example.whatson.util.Post
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.CoroutineScope
@@ -73,7 +74,6 @@ fun WritePostScreen() {
     val statusBarColor = if (darkTheme) Color.Black else Color.White
     val context = LocalContext.current
 
-    // 태바 색상 설정
     SetStatusBarColor(statusBarColor)
 
     val navController = rememberNavController()
@@ -99,10 +99,7 @@ fun WritePostScreen() {
                 }
             )
         },
-        bottomBar = {
-            BottomNavigationBar(navController = navController)
-        }
-
+        bottomBar = { BottomNavigationBar(navController) }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             WritePostForm(coroutineScope)
@@ -142,6 +139,7 @@ fun WritePostForm(coroutineScope: CoroutineScope) {
 
     var selectedImageIndex by remember { mutableStateOf(-1) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showCompletionDialog by remember { mutableStateOf(false) }
 
     // 이미지 선택기
     val imagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -267,13 +265,26 @@ fun WritePostForm(coroutineScope: CoroutineScope) {
                     )
 
                     uploadPostToFirebaseStorage(context, post)
-                    Toast.makeText(context, "저장 완료♥", Toast.LENGTH_SHORT).show()
+                    showCompletionDialog = true // 작성 완료 후 다이얼로그 표시
                 }
             },
             modifier = Modifier.align(Alignment.End),
             enabled = title.isNotEmpty() && content.isNotEmpty() && writer.isNotEmpty()
         ) {
             Text(text = "업로드 하기")
+        }
+
+        if (showCompletionDialog) {
+            AlertDialog(
+                onDismissRequest = { showCompletionDialog = false },
+                title = { Text("작성 완료") },
+                text = { Text("관리자의 승인 후 업로드까지 최대 24시간이 소요될 수 있습니다.") },
+                confirmButton = {
+                    TextButton(onClick = { showCompletionDialog = false }) {
+                        Text("확인")
+                    }
+                }
+            )
         }
     }
 
@@ -356,13 +367,7 @@ suspend fun uploadPostToFirebaseStorage(context: Context, post: Post) {
     }
 }
 
-data class Post(
-    val title: String,
-    val content: String,
-    val imageUrls: List<String> = listOf(),
-    val writer: String,
-    val date: String
-)
+
 
 @Preview
 @Composable
