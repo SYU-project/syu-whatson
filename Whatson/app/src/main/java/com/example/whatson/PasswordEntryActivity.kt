@@ -119,5 +119,4 @@ fun SetPasswordEntryStatusBarColor(view: View, color: Color) {
             @Suppress("DEPRECATION")
             it.decorView.systemUiVisibility = if (color == Color.Black) 0 else View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
         }
-    }
-}
+    }}

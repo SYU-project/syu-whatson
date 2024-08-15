@@ -118,16 +118,27 @@ class MainViewModel : ViewModel() {
 suspend fun fetchArticlesFromUrl(): List<ArticleItem> {
     val urlString = "https://firebasestorage.googleapis.com/v0/b/whatson-93370.appspot.com/o/article%2Farticle.json?alt=media&token=70e0c119-e396-4a3d-998f-a1db85e77c21"
 
-    return withContext(Dispatchers.IO) {
+    val jsonString = withContext(Dispatchers.IO) {
         val url = URL(urlString)
         val connection = url.openConnection() as HttpURLConnection
-        connection.requestMethod = "GET"
+        try {
+            connection.requestMethod = "GET"
 
-        if (connection.responseCode == HttpURLConnection.HTTP_OK) {
-            val jsonString = connection.inputStream.bufferedReader().use { it.readText() }
+            if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                connection.inputStream.bufferedReader().use { it.readText() }
+            } else {
+                null
+            }
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+    return jsonString?.let {
+        withContext(Dispatchers.Default) {
             val gson = Gson()
             val mapType = object : TypeToken<Map<String, List<Map<String, Any>>>>() {}.type
-            val articlesMap: Map<String, List<Map<String, Any>>> = gson.fromJson(jsonString, mapType)
+            val articlesMap: Map<String, List<Map<String, Any>>> = gson.fromJson(it, mapType)
             val articleItems = mutableListOf<ArticleItem>()
             for (category in articlesMap.keys) {
                 val articles = articlesMap[category] ?: continue
@@ -142,25 +153,34 @@ suspend fun fetchArticlesFromUrl(): List<ArticleItem> {
             }
             Log.d("ArticleData", articleItems.toString())
             articleItems
-        } else {
-            emptyList()
         }
-    }
+    } ?: emptyList()
 }
 
 suspend fun fetchNewsFromUrl(): List<NewsItem> {
     val urlString = "http://210.109.52.162:5000/summaries"
 
-    return withContext(Dispatchers.IO) {
+    val jsonString = withContext(Dispatchers.IO) {
         val url = URL(urlString)
         val connection = url.openConnection() as HttpURLConnection
-        connection.requestMethod = "GET"
+        try {
+            connection.requestMethod = "GET"
 
-        if (connection.responseCode == HttpURLConnection.HTTP_OK) {
-            val jsonString = connection.inputStream.bufferedReader().use { it.readText() }
+            if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                connection.inputStream.bufferedReader().use { it.readText() }
+            } else {
+                null
+            }
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+    return jsonString?.let {
+        withContext(Dispatchers.Default) {
             val gson = Gson()
             val listType = object : TypeToken<List<Map<String, String>>>() {}.type
-            val newsList: List<Map<String, String>> = gson.fromJson(jsonString, listType)
+            val newsList: List<Map<String, String>> = gson.fromJson(it, listType)
 
             val newsItems = newsList.map { article ->
                 val category = article["category"] ?: ""
@@ -170,8 +190,6 @@ suspend fun fetchNewsFromUrl(): List<NewsItem> {
             }
             Log.d("NewsData", newsItems.toString())
             newsItems
-        } else {
-            emptyList()
         }
-    }
+    } ?: emptyList()
 }

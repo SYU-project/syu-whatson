@@ -13,8 +13,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -57,9 +59,14 @@ fun FavoritesScreen() {
     val context = LocalContext.current
 
     // Load favorites from both NewsItem and ArticleItem
-    val newsFavorites = remember { mutableStateOf(loadNewsFavorites(context)) }
-    val articleFavorites = remember { mutableStateOf(loadArticleFavorites(context)) }
+    val newsFavorites = rememberSaveable { mutableStateOf(loadNewsFavorites(context)) }
+    val articleFavorites = rememberSaveable { mutableStateOf(loadArticleFavorites(context)) }
 
+
+    LaunchedEffect(Unit) {
+        newsFavorites.value = loadNewsFavorites(context)
+        articleFavorites.value = loadArticleFavorites(context)
+    }
     Scaffold(
         bottomBar = {
             BottomNavigationBar(navController = navController)
