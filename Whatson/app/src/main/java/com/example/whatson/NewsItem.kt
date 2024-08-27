@@ -10,10 +10,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.TabRowDefaults.Divider
@@ -214,5 +216,65 @@ fun ArticleCard(articleItem: ArticleItem) {
 }
 
 
+@OptIn( ExperimentalFoundationApi::class)
+@Composable
+fun minicard(articleItem: ArticleItem) {
+
+    val context = LocalContext.current
+
+
+
+    var expanded by remember { mutableStateOf(false) }
+
+    AnimatedVisibility(visible = true) {
+        Card(
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth(0.5f)
+                .clickable {
+                    val intent = Intent(context, ArticleDetailViewActivity::class.java).apply {
+                        putExtra("articleItem", articleItem)
+                    }
+                    context.startActivity(intent)
+                }
+                .animateContentSize(animationSpec = tween(durationMillis = 300)),
+        ) {
+            Column(
+                modifier = Modifier
+                    .background(Color.White)
+                    .padding(5.dp)
+            ) {
+
+                // 이미지가 있는 경우에만 Pager 표시
+                if (articleItem.imageUrl.isNotEmpty()) {
+                    val pagerState = rememberPagerState(
+                        pageCount = { articleItem.imageUrl.size }
+                    )
+
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp)
+                    ) { page ->
+                        AsyncImage(
+                            model = articleItem.imageUrl[page],
+                            contentDescription = null,
+                            modifier = Modifier
+                                .height(150.dp)
+                                .width(200.dp),
+                            contentScale = ContentScale.Crop,
+                            placeholder = painterResource(id = R.drawable.daehae),
+                            error = painterResource(id = R.drawable.daehae)
+                        )
+                    }}
+                        Text(
+                            text = articleItem.title,
+                            style = MaterialTheme.typography.headlineMedium
+                        )
+
+                    }
+
+            }}}
 
 

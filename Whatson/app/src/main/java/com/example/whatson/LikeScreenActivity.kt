@@ -68,6 +68,7 @@ fun FavoritesScreen() {
         articleFavorites.value = loadArticleFavorites(context)
     }
     Scaffold(
+        topBar = { favorite_Bar() },
         bottomBar = {
             BottomNavigationBar(navController = navController)
         }

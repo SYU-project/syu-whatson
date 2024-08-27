@@ -67,7 +67,7 @@ fun BottomNavigationBar(
                         val intent = when (item.route) {
                             BottomNavItem.Favorite.route -> Intent(context, LikeScreenActivity::class.java)
                             BottomNavItem.Post.route -> Intent(context, WritePostActivity::class.java)
-                            BottomNavItem.Settings.route -> Intent(context, SettingsActivity::class.java)
+                            BottomNavItem.Settings.route -> Intent(context, SettingActivity ::class.java)
                             else -> return@BottomNavigationItem
                         }
                         intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)

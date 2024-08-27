@@ -29,7 +29,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -82,7 +84,15 @@ fun WritePostScreen() {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = "Our Magazine") },
+
+                title = {  val painter: Painter = painterResource(id = R.drawable.zipup_magazine)
+                    Image(
+                        painter = painter,
+                        contentDescription = "Logo",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.height(48.dp) // 원하는 높이로 조절
+                    )
+                },
                 actions = {
                     IconButton(
                         onClick = {

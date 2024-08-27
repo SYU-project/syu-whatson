@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.SnackbarDefaults.backgroundColor
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
@@ -36,7 +37,7 @@ fun TopBar(searchQuery: TextFieldValue, onSearchQueryChange: (TextFieldValue) ->
     TopAppBar(
         title = {
             if (!isSearchMode) {
-                val painter: Painter = painterResource(id = R.drawable.logo) //로고 이미지 가안
+                val painter: Painter = painterResource(id = R.drawable.zipup_magazine) //로고 이미지 가안
                 Image(
                     painter = painter,
                     contentDescription = "Logo",
@@ -97,7 +98,7 @@ fun newsTopBar(searchQuery: TextFieldValue, onSearchQueryChange: (TextFieldValue
     TopAppBar(
         title = {
             if (!isSearchMode) {
-                val painter: Painter = painterResource(id = R.drawable.heynews) //로고 이미지 가안
+                val painter: Painter = painterResource(id = R.drawable.newslogo) //로고 이미지 가안
                 Image(
                     painter = painter,
                     contentDescription = "Logo",
@@ -150,4 +151,21 @@ fun newsTopBar(searchQuery: TextFieldValue, onSearchQueryChange: (TextFieldValue
             }
         },
         backgroundColor = MaterialTheme.colorScheme.background
+    )}
+
+@Composable
+fun favorite_Bar() {
+
+    TopAppBar(
+        title = {
+
+            val painter: Painter = painterResource(id = R.drawable.zipup_magazine) //로고 이미지 가안
+            Image(
+                painter = painter,
+                contentDescription = "Logo",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.height(48.dp) // 원하는 높이로 조절
+            )
+
+        },        backgroundColor = MaterialTheme.colorScheme.background
     )}

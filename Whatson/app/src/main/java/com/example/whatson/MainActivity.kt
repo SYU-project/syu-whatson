@@ -47,6 +47,8 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.example.whatson.ui.theme.WhatsOnTheme
+
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalPagerApi::class)
@@ -198,7 +200,7 @@ fun NewsScreen(viewModel: MainViewModel = viewModel()) {
 
     fun filterListByTab(index: Int) {
         val filteredList = when (index) {
-            0 -> mixedList
+            0 -> newsList
             1 -> newsList.filter { it.category == "economy" }
             2 -> newsList.filter { it.category == "IT" }
             3 -> newsList.filter { it.category == "society" }
