@@ -110,7 +110,12 @@ class MainActivity : ComponentActivity() {
                 AnimatedVisibility(visible = isTopBarVisible) {
                     TopBar(searchQuery) { searchQuery = it }
                 }},
-            bottomBar = { BottomNavigationBar(navController) }
+            bottomBar = {
+                BottomNavigationBar(navController = navController, onHomeClick = {
+                    currentScrollState = LazyListState(0, 0) // Reset scroll state to top
+                    scrollStates[selectedTabIndex] = currentScrollState // Update the scroll state
+                })
+            }
 
         ) { innerPadding ->
             val scrollState = rememberLazyListState()
@@ -131,6 +136,7 @@ class MainActivity : ComponentActivity() {
                         scrollStates[selectedTabIndex] = LazyListState()
                     }
                 }
+
 
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -225,6 +231,7 @@ fun NewsScreen(viewModel: MainViewModel = viewModel()) {
                         scrollStates[selectedTabIndex] = currentScrollState
                         selectedTabIndex = index
                         filterListByTab(index)
+
                         currentScrollState = scrollStates.getOrElse(selectedTabIndex) { LazyListState() }
                         if (scrollStates[selectedTabIndex] == null) {
                             scrollStates[selectedTabIndex] = LazyListState()
@@ -264,7 +271,8 @@ fun NewsScreen(viewModel: MainViewModel = viewModel()) {
                                         return super.onPreScroll(available, source)
                                     }
                                 }
-                            })
+                            }
+                            )
                     ) {
                         items(filteredList) { item ->
                             when (item) {
