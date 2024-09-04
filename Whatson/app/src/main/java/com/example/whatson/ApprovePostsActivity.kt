@@ -17,13 +17,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.TabRowDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
@@ -47,6 +47,7 @@ import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
+
 
 data class ArticleItem(
     val title: String,
@@ -82,8 +83,6 @@ fun ApprovePostsScreen(context: Context) {
     val SetApprovePostsStatusBarColor = if (isLoading) Color.Gray else MaterialTheme.colorScheme.background
     SetApprovePostsStatusBarColor(view, SetApprovePostsStatusBarColor)
 
-    val navController = rememberNavController()
-
     LaunchedEffect(Unit) {
         try {
             val posts = fetchArticlesFromApproveUrl()
@@ -97,12 +96,16 @@ fun ApprovePostsScreen(context: Context) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Approve Posts") }
+            CenterAlignedTopAppBar(
+                title = { Text("Article Approval") },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                ),
+                modifier = Modifier.shadow(4.dp) // 그림자 효과 추가
             )
         },
         bottomBar = {
-            BottomNavigationBar(navController = navController, onHomeClick = {})
+            BottomNavigationBar(navController = rememberNavController())
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -152,9 +155,8 @@ fun ApprovePostsScreen(context: Context) {
                     coroutineScope.launch {
                         try {
                             saveApprovedPostsToFirebaseStorage(selectedPosts)
-
+                            mergeApprovedPostsWithArticleJson()
                             updateUncertificatedPosts(selectedPosts, context)
-
                             postList = postList.filterNot { it in selectedPosts }
                             selectedPosts = emptySet()
                         } catch (e: Exception) {
@@ -338,7 +340,7 @@ suspend fun fetchArticlesFromApproveUrl(): List<ArticleItem> {
 
 // 승인된 게시물을 Firebase Storage에 저장
 suspend fun saveApprovedPostsToFirebaseStorage(posts: Set<ArticleItem>) {
-    val fileName = "approvepost.txt"
+    val fileName = "certificatedpost.txt"
     val gson = GsonBuilder().disableHtmlEscaping().create()
 
     val storageRef = FirebaseStorage.getInstance().reference
@@ -371,6 +373,97 @@ suspend fun saveApprovedPostsToFirebaseStorage(posts: Set<ArticleItem>) {
     fileRef.putStream(stream).await()
 }
 
+
+// 승인된 게시물을 certificatedpost.txt에서 삭제
+suspend fun removeApprovedPostsFromCertificatedFile(posts: Set<ArticleItem>) {
+    val fileName = "certificatedpost.txt"
+    val gson = GsonBuilder().disableHtmlEscaping().create()
+
+    val storageRef = FirebaseStorage.getInstance().reference
+    val fileRef = storageRef.child(fileName)
+
+    val existingJson = fetchJsonFromFirebaseStorage(fileRef)
+
+    val existingPosts = try {
+        val listType = object : TypeToken<List<Map<String, Any>>>() {}.type
+        gson.fromJson<List<Map<String, Any>>>(existingJson, listType)
+    } catch (e: Exception) {
+        emptyList<Map<String, Any>>()
+    }
+
+    // 승인된 게시물을 certificatedpost.txt에서 제거
+    val updatedPosts = existingPosts.filter { existingPost ->
+        posts.none { post ->
+            post.title == existingPost["Title"] &&
+                    post.description == existingPost["Content"] &&
+                    post.writer == existingPost["writer"] &&
+                    post.date == existingPost["date"]
+        }
+    }
+
+    val json = gson.toJson(updatedPosts)
+    val stream = ByteArrayInputStream(json.toByteArray(Charsets.UTF_8))
+
+    fileRef.putStream(stream).await()
+}
+
+// 승인된 게시물과 article.json 병합 후, certificatedpost.txt에서 삭제
+suspend fun mergeApprovedPostsWithArticleJson() {
+    val storageRef = FirebaseStorage.getInstance().reference
+    val approvedPostsRef = storageRef.child("certificatedpost.txt")
+    val articleJsonRef = storageRef.child("article/article.json")
+
+    val approvedPostsJson = fetchJsonFromFirebaseStorage(approvedPostsRef)
+    val articleJson = fetchJsonFromFirebaseStorage(articleJsonRef)
+
+    val gson = GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create()
+    val mapType = object : TypeToken<Map<String, List<Map<String, Any>>>>() {}.type
+
+    // 기존 게시물 가져오기
+    val approvedPosts: List<Map<String, Any>> = try {
+        gson.fromJson(approvedPostsJson, object : TypeToken<List<Map<String, Any>>>() {}.type)
+    } catch (e: Exception) {
+        emptyList()
+    }
+
+    // article.json을 파싱하여 기존 게시물 구조를 가져옵니다.
+    val articleData: Map<String, List<Map<String, Any>>> = try {
+        gson.fromJson(articleJson, mapType)
+    } catch (e: Exception) {
+        emptyMap()
+    }
+
+    // "User article" 카테고리의 게시물 목록 가져오기
+    val userArticles = articleData["User article"]?.toMutableList() ?: mutableListOf()
+
+    // 승인된 게시물 추가
+    userArticles.addAll(approvedPosts)
+
+    // 새로운 데이터 맵 생성
+    val updatedArticleData = articleData.toMutableMap()
+    updatedArticleData["User article"] = userArticles
+
+    // JSON 직렬화
+    val mergedJson = gson.toJson(updatedArticleData)
+    val inputStream: InputStream = ByteArrayInputStream(mergedJson.toByteArray(Charsets.UTF_8))
+
+    withContext(Dispatchers.IO) {
+        articleJsonRef.putStream(inputStream).await()
+    }
+
+    // 승인된 게시물 삭제
+    removeApprovedPostsFromCertificatedFile(posts = approvedPosts.map {
+        ArticleItem(
+            title = it["Title"] as String,
+            description = it["Content"] as String,
+            imageUrl = (it["imageurl"] as List<String>),
+            writer = it["writer"] as String,
+            date = it["date"] as String
+        )
+    }.toSet())
+}
+
+
 // Firebase Storage에서 JSON 데이터 가져오기
 suspend fun fetchJsonFromFirebaseStorage(fileRef: StorageReference): String {
     return withContext(Dispatchers.IO) {
@@ -383,6 +476,7 @@ suspend fun fetchJsonFromFirebaseStorage(fileRef: StorageReference): String {
         }
     }
 }
+
 
 // 승인된 게시물 제외한 나머지 게시물 목록을 업데이트
 suspend fun updateUncertificatedPosts(posts: Set<ArticleItem>, context: Context) {

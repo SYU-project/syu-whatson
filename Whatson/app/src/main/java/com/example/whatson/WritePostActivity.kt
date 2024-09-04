@@ -13,21 +13,20 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
@@ -56,6 +55,8 @@ import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.material.TopAppBar
+import androidx.compose.material3.MaterialTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 class WritePostActivity : ComponentActivity() {
@@ -76,37 +77,50 @@ fun WritePostScreen() {
     val statusBarColor = if (darkTheme) Color.Black else Color.White
     val context = LocalContext.current
 
+    // Set the status bar color (assuming you have this function defined somewhere)
     SetStatusBarColor(statusBarColor)
 
     val navController = rememberNavController()
     val coroutineScope = rememberCoroutineScope()
 
+    // Click count state
+    var clickCount by remember { mutableStateOf(0) }
+
     Scaffold(
         topBar = {
             TopAppBar(
-
-                title = {  val painter: Painter = painterResource(id = R.drawable.zipup_magazine)
+                title = {
+                    val painter: Painter = painterResource(id = R.drawable.zipup_magazine)
                     Image(
                         painter = painter,
                         contentDescription = "Logo",
                         contentScale = ContentScale.Fit,
-                        modifier = Modifier.height(48.dp) // 원하는 높이로 조절
+                        modifier = Modifier.height(48.dp)
                     )
                 },
                 actions = {
                     IconButton(
                         onClick = {
-                            val intent = Intent(context, PasswordEntryActivity::class.java)
-                            context.startActivity(intent)
+                            clickCount++
+                            if (clickCount == 5) {
+                                // 승인모드 클릭횟수 지정
+                                val intent = Intent(context, PasswordEntryActivity::class.java)
+                                context.startActivity(intent)
+                                clickCount = 0
+                            }
                         },
-                        modifier = Modifier.padding(end = 16.dp)
+                        modifier = Modifier
+                            .padding(end = 16.dp)
+                            .background(Color.Transparent)
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.Settings,
-                            contentDescription = "Settings"
+                            painter = painterResource(id = R.drawable.transparent_icon),
+                            contentDescription = "Transparent Icon"
                         )
                     }
-                }
+                },
+                backgroundColor = MaterialTheme.colorScheme.background,
+                elevation = 4.dp
             )
         },
         bottomBar = { BottomNavigationBar(navController) }
@@ -116,6 +130,8 @@ fun WritePostScreen() {
         }
     }
 }
+
+
 
 @Composable
 fun SetStatusBarColor(color: Color) {
@@ -202,7 +218,7 @@ fun WritePostForm(coroutineScope: CoroutineScope) {
             ),
             keyboardActions = KeyboardActions(
                 onDone = {
-                    // Handle action when "Done" button is pressed on keyboard
+
                 }
             )
         )
@@ -214,11 +230,13 @@ fun WritePostForm(coroutineScope: CoroutineScope) {
                 .fillMaxWidth()
                 .height(180.dp)
         ) {
+            item {
+                Spacer(modifier = Modifier.width(1.dp))
+            }
             items(4) { index ->
                 Box(
                     modifier = Modifier
                         .size(180.dp)
-                        .background(Color.Gray, RoundedCornerShape(8.dp))
                         .clickable {
                             if (index < imageUris.size) {
                                 showConfirmDeleteDialog(index)
@@ -226,23 +244,90 @@ fun WritePostForm(coroutineScope: CoroutineScope) {
                                 imagePickerLauncher.launch("image/*")
                             }
                         }
-                        .padding(4.dp),
-                    contentAlignment = Alignment.Center
                 ) {
-                    if (index < imageUris.size && imageUris[index] != null) {
-                        Image(
-                            painter = rememberAsyncImagePainter(imageUris[index]),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize()
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        val borderWidth = 2.dp.toPx() // 테두리 두께
+                        val cornerSize = 20.dp.toPx() // 모서리 길이
+
+                        // Draw top-left corner (ㄱ 모양)
+                        drawLine(
+                            color = Color.Gray,
+                            start = Offset(0f, 0f),
+                            end = Offset(cornerSize, 0f),
+                            strokeWidth = borderWidth
                         )
-                    } else {
-                        Text(
-                            "+",
-                            color = Color.White,
-                            fontSize = 40.sp,
-                            fontWeight = FontWeight.Light,
-                            textAlign = TextAlign.Center
+                        drawLine(
+                            color = Color.Gray,
+                            start = Offset(0f, 0f),
+                            end = Offset(0f, cornerSize),
+                            strokeWidth = borderWidth
                         )
+
+                        // Draw bottom-left corner (ㄴ 모양)
+                        drawLine(
+                            color = Color.Gray,
+                            start = Offset(0f, size.height),
+                            end = Offset(0f, size.height - cornerSize),
+                            strokeWidth = borderWidth
+                        )
+                        drawLine(
+                            color = Color.Gray,
+                            start = Offset(0f, size.height),
+                            end = Offset(cornerSize, size.height),
+                            strokeWidth = borderWidth
+                        )
+
+                        // Draw top-right corner (ㄱ 모양 반전)
+                        drawLine(
+                            color = Color.Gray,
+                            start = Offset(size.width, 0f),
+                            end = Offset(size.width - cornerSize, 0f),
+                            strokeWidth = borderWidth
+                        )
+                        drawLine(
+                            color = Color.Gray,
+                            start = Offset(size.width, 0f),
+                            end = Offset(size.width, cornerSize),
+                            strokeWidth = borderWidth
+                        )
+
+                        // Draw bottom-right corner (ㄴ 모양 반전)
+                        drawLine(
+                            color = Color.Gray,
+                            start = Offset(size.width, size.height),
+                            end = Offset(size.width - cornerSize, size.height),
+                            strokeWidth = borderWidth
+                        )
+                        drawLine(
+                            color = Color.Gray,
+                            start = Offset(size.width, size.height),
+                            end = Offset(size.width, size.height - cornerSize),
+                            strokeWidth = borderWidth
+                        )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.White) // 배경색을 설정
+                            .padding(4.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (index < imageUris.size && imageUris[index] != null) {
+                            Image(
+                                painter = rememberAsyncImagePainter(imageUris[index]),
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        } else {
+                            Text(
+                                "+",
+                                color = Color.Gray,
+                                fontSize = 40.sp,
+                                fontWeight = FontWeight.ExtraLight,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
                 }
 
@@ -250,7 +335,7 @@ fun WritePostForm(coroutineScope: CoroutineScope) {
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(32.dp)) // 버튼과 이미지 상자 사이의 공간 추가
 
         Button(
             onClick = {
