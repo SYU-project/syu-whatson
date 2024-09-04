@@ -186,7 +186,7 @@ class MainActivity : ComponentActivity() {
 fun NewsScreen(viewModel: MainViewModel = viewModel()) {
     val navController = rememberNavController()
     val newsList by viewModel.newsList.observeAsState(emptyList())
-    var mixedList by remember { mutableStateOf(viewModel.mixedList) }
+    var mixedList by remember { mutableStateOf(viewModel.mixedList.filterIsInstance<NewsItem>()) } // 초기화 시 ArticleItem을 제외
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     var selectedTabIndex by remember { mutableStateOf(0) }
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = false)
@@ -195,11 +195,8 @@ fun NewsScreen(viewModel: MainViewModel = viewModel()) {
     var currentScrollState = rememberLazyListState()
     val scrollStates = remember { mutableMapOf<Int, LazyListState>() }
 
-
     LaunchedEffect(Unit) {
-
-
-        val combinedList = (newsList).toMutableList()
+        val combinedList = newsList.toMutableList()
         combinedList.shuffle()
         scrollStates[0] = currentScrollState
     }
@@ -214,7 +211,7 @@ fun NewsScreen(viewModel: MainViewModel = viewModel()) {
             5 -> newsList.filter { it.category == "global" }
             else -> newsList
         }
-        mixedList = filteredList
+        mixedList = filteredList.filterIsInstance<NewsItem>() // ArticleItem을 제외
     }
 
     Scaffold(
@@ -246,8 +243,6 @@ fun NewsScreen(viewModel: MainViewModel = viewModel()) {
                     when (item) {
                         is NewsItem -> item.title.contains(trimmedQuery, ignoreCase = true) ||
                                 item.description.contains(trimmedQuery, ignoreCase = true)
-                        is ArticleItem -> item.title.contains(trimmedQuery, ignoreCase = true) ||
-                                item.description.contains(trimmedQuery, ignoreCase = true)
                         else -> false
                     }
                 }
@@ -277,7 +272,6 @@ fun NewsScreen(viewModel: MainViewModel = viewModel()) {
                         items(filteredList) { item ->
                             when (item) {
                                 is NewsItem -> NewsCard(item)
-                                is ArticleItem -> ArticleCard(item)
                             }
                         }
                     }
