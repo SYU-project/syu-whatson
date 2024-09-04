@@ -38,12 +38,15 @@ android {
         jvmTarget = "17"
     }
     buildFeatures {
+        viewBinding = true
+        dataBinding = true
         compose = true
     }
 
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"
     }
+
 }
 
 dependencies {
@@ -101,6 +104,9 @@ dependencies {
 
 
     implementation ("com.google.code.gson:gson:2.10.1")
+
+    implementation("com.github.bumptech.glide:glide:4.12.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.12.0")
 
 }
 
