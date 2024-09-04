@@ -2,10 +2,9 @@ package com.example.whatson
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
-import com.bumptech.glide.Glide
+import com.airbnb.lottie.LottieAnimationView
+import com.airbnb.lottie.LottieDrawable
 import com.example.whatson.databinding.ActivitySplashBinding
 
 class SplashActivity : AppCompatActivity() {
@@ -17,17 +16,18 @@ class SplashActivity : AppCompatActivity() {
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // GIF 로드
-        Glide.with(this)
-            .asGif()
-            .load(R.drawable.zipup_splash) // drawable 폴더에 저장된 gif 파일
-            .into(binding.gifImageView)
+        binding.lottieAnimationView.apply {
+            setAnimation(R.raw.animation)  // Lottie 애니메이션 파일 설정
+            repeatCount = 0  // 한 번만 재생
+            playAnimation()  // 애니메이션 재생
 
-        // 스플래시 화면을 3초 동안 보여주고 MainActivity로 전환
-        Handler(Looper.getMainLooper()).postDelayed({
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
-            finish() // SplashActivity를 종료
-        }, 3000) // 3000ms = 3초
+            // 애니메이션이 끝난 후 메인 액티비티로 이동
+            addAnimatorUpdateListener {
+                if (!isAnimating) {
+                    startActivity(Intent(this@SplashActivity, MainActivity::class.java))
+                    finish()
+                }
+            }
+        }
     }
 }
