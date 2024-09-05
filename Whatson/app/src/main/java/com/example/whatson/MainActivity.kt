@@ -7,7 +7,6 @@ import android.view.WindowInsetsController
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -47,7 +46,6 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import com.example.whatson.ui.theme.WhatsOnTheme
 
 
 class MainActivity : ComponentActivity() {
@@ -55,9 +53,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            WhatsOnTheme {
-                val darkTheme = isSystemInDarkTheme()
-                val statusBarColor = if (darkTheme) Color.Black else Color(0xFFFFFFFF) // 원하는 색상으로 변경
+            // 다크 모드를 강제 비활성화하고 밝은 테마로 고정
+            WhatsOnTheme(darkTheme = false) {
+                val statusBarColor = Color(0xFFFFFFFF) // 배경색을 흰색으로 고정
                 window.statusBarColor = statusBarColor.toArgb()
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -69,19 +67,22 @@ class MainActivity : ComponentActivity() {
                     @Suppress("DEPRECATION")
                     window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
                 }
+
                 val pagerState = rememberPagerState()
                 HorizontalPager(
                     state = pagerState,
                     count = 2,
                     modifier = Modifier.fillMaxSize()
-                ){
+                ) {
                     when (it) {
                         0 -> MainScreen()
                         1 -> NewsScreen()
-                    }            }
+                    }
+                }
             }
         }
     }
+}
 
     @Composable
     fun MainScreen(viewModel: MainViewModel = viewModel()) {
@@ -179,7 +180,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-}
+
 
 
 @Composable
