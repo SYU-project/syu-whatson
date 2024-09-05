@@ -1,5 +1,5 @@
 # 📖 지식공유를 위한 오픈매거진 플랫폼 ZIPUP 
-
+![zipup logo](https://github.com/user-attachments/assets/1fb46c38-6e6a-40a1-ad03-577d97866814)
 
 
 </div>
