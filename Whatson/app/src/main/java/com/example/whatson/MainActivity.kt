@@ -196,15 +196,15 @@ fun NewsScreen(viewModel: MainViewModel = viewModel()) {
     var currentScrollState = rememberLazyListState()
     val scrollStates = remember { mutableMapOf<Int, LazyListState>() }
 
-    LaunchedEffect(Unit) {
-        val combinedList = newsList.toMutableList()
-        combinedList.shuffle()
-        scrollStates[0] = currentScrollState
-    }
-
     fun filterListByTab(index: Int) {
         val filteredList = when (index) {
-            0 -> newsList
+            0 -> newsList.filter {
+                it.category == "economy" ||
+                        it.category == "society" ||
+                        it.category == "culture" ||
+                        it.category == "global" ||
+                        it.category == "IT"
+            }.shuffled()
             1 -> newsList.filter { it.category == "economy" }
             2 -> newsList.filter { it.category == "IT" }
             3 -> newsList.filter { it.category == "society" }
@@ -213,6 +213,16 @@ fun NewsScreen(viewModel: MainViewModel = viewModel()) {
             else -> newsList
         }
         mixedList = filteredList.filterIsInstance<NewsItem>() // ArticleItem을 제외
+    }
+    
+    LaunchedEffect(Unit) {
+        val combinedList = newsList.toMutableList()
+        combinedList.shuffle()
+        scrollStates[0] = currentScrollState
+        filterListByTab(0)  // 초기화 시 기본 탭(0번)에 대한 필터링을 호출
+    }
+    LaunchedEffect(newsList) {
+        filterListByTab(selectedTabIndex) // 뉴스 리스트가 변경될 때마다 필터링을 수행
     }
 
     Scaffold(
