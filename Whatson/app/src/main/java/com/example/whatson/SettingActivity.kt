@@ -36,13 +36,12 @@ import com.example.whatson.ui.theme.WhatsOnTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 
 class SettingActivity : ComponentActivity() {
-    @OptIn(ExperimentalPagerApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            WhatsOnTheme {
-                val darkTheme = isSystemInDarkTheme()
-                val statusBarColor = if (darkTheme) Color.Black else Color(0xFFFFFFFF) // 원하는 색상으로 변경
+            // 다크 모드를 강제 비활성화하고 밝은 테마로 고정
+            WhatsOnTheme(darkTheme = false) {
+                val statusBarColor = Color(0xFFFFFFFF) // 배경색을 흰색으로 고정
                 window.statusBarColor = statusBarColor.toArgb()
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -54,13 +53,14 @@ class SettingActivity : ComponentActivity() {
                     @Suppress("DEPRECATION")
                     window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
                 }
+                // 원하는 화면을 호출
                 SettingScreen()
-                    }
             }
         }
     }
+}
 
-@OptIn(ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingScreen(viewModel: MainViewModel = viewModel()) {
     val navController = rememberNavController()

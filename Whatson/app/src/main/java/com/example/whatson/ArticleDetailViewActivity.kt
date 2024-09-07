@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.view.WindowInsetsController
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -49,18 +50,22 @@ class ArticleDetailViewActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            WhatsOnTheme {
-                val darkTheme = isSystemInDarkTheme()
-                val statusBarColor = if (darkTheme) Color.Black else Color(0xFFFFFFFF)
+            // 다크 모드를 강제 비활성화하고 밝은 테마로 고정
+            WhatsOnTheme(darkTheme = false) {
+                val statusBarColor = Color(0xFFFFFFFF) // 배경색을 흰색으로 고정
                 window.statusBarColor = statusBarColor.toArgb()
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    val windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
-                    windowInsetsController.isAppearanceLightStatusBars = !darkTheme
+                    window.insetsController?.setSystemBarsAppearance(
+                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
+                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                    )
                 } else {
                     @Suppress("DEPRECATION")
-                    window.decorView.systemUiVisibility = if (darkTheme) 0 else View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                    window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
                 }
+                // 디테일 뷰를 호출
+
                 val articleItem = intent.getSerializableExtra("articleItem") as? ArticleItem
                 DetailScreen(articleItem)
 

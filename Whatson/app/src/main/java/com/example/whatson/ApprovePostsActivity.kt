@@ -61,12 +61,24 @@ class ApprovePostsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            WhatsOnTheme {
-                ApprovePostsScreen(context = this)
-            }
+            // 다크 모드를 강제 비활성화하고 밝은 테마로 고정
+            WhatsOnTheme(darkTheme = false) {
+                val statusBarColor = Color(0xFFFFFFFF) // 배경색을 흰색으로 고정
+                window.statusBarColor = statusBarColor.toArgb()
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    window.insetsController?.setSystemBarsAppearance(
+                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
+                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                    )
+                } else {
+                    @Suppress("DEPRECATION")
+                    window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                }
+                // 원하는 화면을 호출
+                ApprovePostsScreen(context = this)            }
         }
-    }
-}
+    }}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
