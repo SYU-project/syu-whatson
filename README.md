@@ -11,12 +11,40 @@
 > 2024.06 ~ 2024.09
 
 ## 👨‍👩‍👦‍👦개발팀원 소개 
-
-|      팀장 김상훈       |      FE 기도은       |      FE 서예진       |      BE 이성현       |     FE 이은서       |
-| :---------------------: | :---------------: | :---------------: | :---------------: | :---------------: |
-| <img src="https://avatars.githubusercontent.com/u/80574796?v=4" width="100px;" alt="김상훈"/> | <img src="https://avatars.githubusercontent.com/u/71860644?v=4" width="100px;" alt="기도은"/> | <img src="https://avatars.githubusercontent.com/u/114378725?v=4" width="100px;" alt="서예진"/> | <img src="https://avatars.githubusercontent.com/u/127844467?v=4" width="100px;" alt="이성현"/> | <img src="https://avatars.githubusercontent.com/u/128893466?v=4" width="100px;" alt="이은서"/> |
-| [@sanghoon3203](https://github.com/sanghoon3203) | [@doeun436](https://github.com/doeun436) | [@billybee12](https://github.com/billybee12) | [@KOlizer](https://github.com/KOlizer) | [@BBBaekSeung](https://github.com/BBBaekSeung) |
-| 소프트웨어전공 3학년 | 소프트웨어전공 3학년 | 소프트웨어전공 3학년 | 소프트웨어전공 3학년 | 컴퓨터공학전공 4학년 |
+<table>
+  <thead>
+    <tr>
+      <th>팀장 김상훈</th>
+      <th>FE 기도은</th>
+      <th>FE 서예진</th>
+      <th>BE 이성현</th>
+      <th>FE 이은서</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center"><img src="https://avatars.githubusercontent.com/u/80574796?v=4" width="100px;" alt="김상훈"/></td>
+      <td align="center"><img src="https://avatars.githubusercontent.com/u/71860644?v=4" width="100px;" alt="기도은"/></td>
+      <td align="center"><img src="https://avatars.githubusercontent.com/u/114378725?v=4" width="100px;" alt="서예진"/></td>
+      <td align="center"><img src="https://avatars.githubusercontent.com/u/127844467?v=4" width="100px;" alt="이성현"/></td>
+      <td align="center"><img src="https://avatars.githubusercontent.com/u/128893466?v=4" width="100px;" alt="이은서"/></td>
+    </tr>
+    <tr>
+      <td align="center"><a href="https://github.com/sanghoon3203">@sanghoon3203</a></td>
+      <td align="center"><a href="https://github.com/doeun436">@doeun436</a></td>
+      <td align="center"><a href="https://github.com/billybee12">@billybee12</a></td>
+      <td align="center"><a href="https://github.com/KOlizer">@KOlizer</a></td>
+      <td align="center"><a href="https://github.com/BBBaekSeung">@BBBaekSeung</a></td>
+    </tr>
+    <tr>
+      <td align="center">소프트웨어전공 3학년</td>
+      <td align="center">소프트웨어전공 3학년</td>
+      <td align="center">소프트웨어전공 3학년</td>
+      <td align="center">소프트웨어전공 3학년</td>
+      <td align="center">컴퓨터공학전공 4학년</td>
+    </tr>
+  </tbody>
+</table>
 
 
 ## 🚀주요기능
