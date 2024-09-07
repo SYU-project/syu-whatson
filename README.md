@@ -37,14 +37,15 @@
       <td align="center"><a href="https://github.com/BBBaekSeung">@BBBaekSeung</a></td>
     </tr>
     <tr>
-      <td align="center">소프트웨어전공 3학년</td>
-      <td align="center">소프트웨어전공 3학년</td>
-      <td align="center">소프트웨어전공 3학년</td>
-      <td align="center">소프트웨어전공 3학년</td>
-      <td align="center">컴퓨터공학전공 4학년</td>
+      <td align="center" style="font-size: 12px;">소프트웨어전공 3학년</td>
+      <td align="center" style="font-size: 12px;">소프트웨어전공 3학년</td>
+      <td align="center" style="font-size: 12px;">소프트웨어전공 3학년</td>
+      <td align="center" style="font-size: 12px;">소프트웨어전공 3학년</td>
+      <td align="center" style="font-size: 12px;">컴퓨터공학전공 4학년</td>
     </tr>
   </tbody>
 </table>
+
 
 
 ## 🚀주요기능
