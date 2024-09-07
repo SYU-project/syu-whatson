@@ -11,21 +11,15 @@
 > 2024.06 ~ 2024.09
 
 ## 👨‍👩‍👦‍👦개발팀원 소개 
-<table>
-  <tbody>
-    <tr>
-      <td align="center"><a href="https://github.com/sanghoon3203"><img src="https://avatars.githubusercontent.com/u/80574796?v=4" width="100px;" alt=""/><br /><sub><b> 김상훈(팀장) </b></sub></a><br /></td>
-      <td align="center"><a href="https://github.com/doeun436"><img src="https://avatars.githubusercontent.com/u/71860644?v=4" width="100px;" alt=""/><br /><sub><b> 기도은 </b></sub></a><br /></td>
-      <td align="center"><a href="https://github.com/billybee12"><img src="https://avatars.githubusercontent.com/u/114378725?v=4" width="100px;" alt=""/><br /><sub><b> 서예진 </b></sub></a><br /></td>
-      <td align="center"><a href="https://github.com/KOlizer"><img src="https://avatars.githubusercontent.com/u/127844467?v=4" width="100px;" alt=""/><br /><sub><b> 이성현 </b></sub></a><br /></td>
-      <td align="center"><a href="https://github.com/BBBaekSeung"><img src="https://avatars.githubusercontent.com/u/128893466?v=4" width="100px;" alt=""/><br /><sub><b> 이은서 </b></sub></a><br /></td>
-    </tr>
-  </tbody>
-</table>
+
+|      팀장 김상훈       |      FE 기도은       |      FE 서예진       |      BE 이성현       |     FE 이은서       |
+| :---------------------: | :---------------: | :---------------: | :---------------: | :---------------: |
+| <img src="https://avatars.githubusercontent.com/u/80574796?v=4" width="100px;" alt="김상훈"/> | <img src="https://avatars.githubusercontent.com/u/71860644?v=4" width="100px;" alt="기도은"/> | <img src="https://avatars.githubusercontent.com/u/114378725?v=4" width="100px;" alt="서예진"/> | <img src="https://avatars.githubusercontent.com/u/127844467?v=4" width="100px;" alt="이성현"/> | <img src="https://avatars.githubusercontent.com/u/128893466?v=4" width="100px;" alt="이은서"/> |
+| [@sanghoon3203](https://github.com/sanghoon3203) | [@doeun436](https://github.com/doeun436) | [@billybee12](https://github.com/billybee12) | [@KOlizer](https://github.com/KOlizer) | [@BBBaekSeung](https://github.com/BBBaekSeung) |
+| 소프트웨어전공 3학년 | 소프트웨어전공 3학년 | 소프트웨어전공 3학년 | 소프트웨어전공 3학년 | 컴퓨터공학전공 4학년 |
 
 
-
-## 주요 기능 📦
+## 🚀주요기능
 
 ### ⭐️ 뉴스 요약
 -
@@ -37,7 +31,7 @@
 -
 
 
-## Stacks 🐈
+## 🔧Stack
 
 ### Environment
 ![Android_Studio](https://img.shields.io/badge/Android_Studio-3DDC84?style=for-the-badge&logo=android-studio&logoColor=white)
