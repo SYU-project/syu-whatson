@@ -15,10 +15,9 @@
   <thead>
     <tr>
       <th>팀장 김상훈</th>
-      <th>FE 기도은</th>
-      <th>FE 서예진</th>
-      <th>BE 이성현</th>
-      <th>FE 이은서</th>
+      <th>기도은</th>
+      <th>서예진</th>
+      <th>이성현</th>
     </tr>
   </thead>
   <tbody>
@@ -27,24 +26,41 @@
       <td align="center"><img src="https://avatars.githubusercontent.com/u/71860644?v=4" width="100px;" alt="기도은"/></td>
       <td align="center"><img src="https://avatars.githubusercontent.com/u/114378725?v=4" width="100px;" alt="서예진"/></td>
       <td align="center"><img src="https://avatars.githubusercontent.com/u/127844467?v=4" width="100px;" alt="이성현"/></td>
-      <td align="center"><img src="https://avatars.githubusercontent.com/u/128893466?v=4" width="100px;" alt="이은서"/></td>
     </tr>
     <tr>
       <td align="center"><a href="https://github.com/sanghoon3203">@sanghoon3203</a></td>
       <td align="center"><a href="https://github.com/doeun436">@doeun436</a></td>
       <td align="center"><a href="https://github.com/billybee12">@billybee12</a></td>
       <td align="center"><a href="https://github.com/KOlizer">@KOlizer</a></td>
-      <td align="center"><a href="https://github.com/BBBaekSeung">@BBBaekSeung</a></td>
     </tr>
     <tr>
-      <td align="center" style="font-size: 12px;">소프트웨어전공 3학년</td>
-      <td align="center" style="font-size: 12px;">소프트웨어전공 3학년</td>
-      <td align="center" style="font-size: 12px;">소프트웨어전공 3학년</td>
-      <td align="center" style="font-size: 12px;">소프트웨어전공 3학년</td>
-      <td align="center" style="font-size: 12px;">컴퓨터공학전공 4학년</td>
+      <td align="center">소프트웨어전공 3학년</td>
+      <td align="center">소프트웨어전공 3학년</td>
+      <td align="center">소프트웨어전공 3학년</td>
+      <td align="center">소프트웨어전공 3학년</td>
     </tr>
   </tbody>
 </table>
+
+<table>
+  <thead>
+    <tr>
+      <th>이은서</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center"><img src="https://avatars.githubusercontent.com/u/128893466?v=4" width="100px;" alt="이은서"/></td>
+    </tr>
+    <tr>
+      <td align="center"><a href="https://github.com/BBBaekSeung">@BBBaekSeung</a></td>
+    </tr>
+    <tr>
+      <td align="center">컴퓨터공학전공 4학년</td>
+    </tr>
+  </tbody>
+</table>
+
 
 
 
