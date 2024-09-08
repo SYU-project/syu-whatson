@@ -5,15 +5,18 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.TabRowDefaults.Divider
@@ -66,13 +69,14 @@ fun NewsCard(newsItem: NewsItem) {
     ) {
         Column(
             modifier = Modifier
-                .background(Color.LightGray)
+                .background(Color.White)
                 .padding(16.dp)
         ) {
             Text(
                 text = newsItem.title,
                 style = MaterialTheme.typography.headlineMedium
             )
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = newsItem.description,
                 style = MaterialTheme.typography.bodyLarge
@@ -94,6 +98,13 @@ fun NewsCard(newsItem: NewsItem) {
                         isFavorite = !isFavorite
                     },
                 tint = if (isFavorite) Color.Red else Color.Gray
+
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Divider(
+                color = Color.LightGray.copy(alpha = 0.6f),
+                thickness = 1.dp,
+                modifier = Modifier.padding(bottom = 8.dp)
             )
         }
     }
@@ -163,10 +174,6 @@ fun ArticleCard(articleItem: ArticleItem) {
                     style = MaterialTheme.typography.headlineMedium
                 )
 
-               /* Text(
-                    text = articleItem.description,
-                    style = MaterialTheme.typography.bodyLarge
-                )*/
                Row {
                    Text(text = articleItem.date,
                        style = MaterialTheme.typography.bodySmall,
@@ -209,6 +216,78 @@ fun ArticleCard(articleItem: ArticleItem) {
     }
 }
 
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun minicard(articleItem: ArticleItem) {
+
+    val context = LocalContext.current
+
+    var expanded by remember { mutableStateOf(false) }
+
+    AnimatedVisibility(visible = true) {
+        Card(
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth(0.5f)
+                .clickable {
+                    val intent = Intent(context, ArticleDetailViewActivity::class.java).apply {
+                        putExtra("articleItem", articleItem)
+                    }
+                    context.startActivity(intent)
+                }
+                .animateContentSize(animationSpec = tween(durationMillis = 300)),
+        ) {
+            Column(
+                modifier = Modifier
+                    .background(Color.White)
+                    .padding(5.dp)
+            ) {
+
+                // 이미지가 있는 경우에만 Pager 표시
+                if (articleItem.imageUrl.isNotEmpty()) {
+                    val pagerState = rememberPagerState(
+                        pageCount = { articleItem.imageUrl.size }
+                    )
+
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp)
+                    ) { page ->
+                        AsyncImage(
+                            model = articleItem.imageUrl[page],
+                            contentDescription = null,
+                            modifier = Modifier
+                                .height(150.dp)
+                                .width(200.dp),
+                            contentScale = ContentScale.Crop,
+                            placeholder = painterResource(id = R.drawable.daehae),
+                            error = painterResource(id = R.drawable.daehae)
+                        )
+                    }
+                } else {
+                    // 이미지가 없을 때 기본 이미지 표시
+                    Image(
+                        painter = painterResource(id = R.drawable.daehae),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+
+                Text(
+                    text = articleItem.title,
+                    style = MaterialTheme.typography.headlineMedium
+                )
+
+            }
+        }
+    }
+}
 
 
 

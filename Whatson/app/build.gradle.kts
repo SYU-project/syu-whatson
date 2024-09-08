@@ -38,18 +38,22 @@ android {
         jvmTarget = "17"
     }
     buildFeatures {
+        viewBinding = true
+        dataBinding = true
         compose = true
     }
 
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"
     }
+
 }
 
 dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("io.coil-kt:coil-compose:2.6.0")
-
+    implementation ("com.google.accompanist:accompanist-pager:0.23.1")
+    implementation ("com.google.accompanist:accompanist-pager-indicators:0.23.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.activity:activity-compose:1.7.0")
@@ -100,6 +104,11 @@ dependencies {
 
 
     implementation ("com.google.code.gson:gson:2.10.1")
+
+    implementation("com.github.bumptech.glide:glide:4.12.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.12.0")
+
+    implementation("com.airbnb.android:lottie:5.0.3")
 
 }
 
