@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -216,13 +217,11 @@ fun ArticleCard(articleItem: ArticleItem) {
 }
 
 
-@OptIn( ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun minicard(articleItem: ArticleItem) {
 
     val context = LocalContext.current
-
-
 
     var expanded by remember { mutableStateOf(false) }
 
@@ -267,14 +266,28 @@ fun minicard(articleItem: ArticleItem) {
                             placeholder = painterResource(id = R.drawable.daehae),
                             error = painterResource(id = R.drawable.daehae)
                         )
-                    }}
-                        Text(
-                            text = articleItem.title,
-                            style = MaterialTheme.typography.headlineMedium
-                        )
-
                     }
+                } else {
+                    // 이미지가 없을 때 기본 이미지 표시
+                    Image(
+                        painter = painterResource(id = R.drawable.daehae),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                }
 
-            }}}
+                Text(
+                    text = articleItem.title,
+                    style = MaterialTheme.typography.headlineMedium
+                )
+
+            }
+        }
+    }
+}
+
 
 

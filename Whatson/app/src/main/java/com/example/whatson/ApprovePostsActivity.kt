@@ -109,7 +109,7 @@ fun ApprovePostsScreen(context: Context) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Article Approval") },
+                title = { Text("관리자 기사 승인") },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
                 ),

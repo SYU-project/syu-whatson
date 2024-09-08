@@ -214,7 +214,7 @@ fun NewsScreen(viewModel: MainViewModel = viewModel()) {
         }
         mixedList = filteredList.filterIsInstance<NewsItem>() // ArticleItem을 제외
     }
-    
+
     LaunchedEffect(Unit) {
         val combinedList = newsList.toMutableList()
         combinedList.shuffle()
